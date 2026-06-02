@@ -12,3 +12,5 @@ docs/
 .claude/
 *.output
 *.log
+baocao.*
+cookie*.txt
