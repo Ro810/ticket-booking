@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Hành khách - TicketBooking</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-customer-id="<%= user.id %>">
+    <div class="navbar">
+        <div style="display:flex;align-items:center;gap:10px">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="navbar-brand">🎫 TicketBooking</div>
+        </div>
+        <div class="navbar-right">
+            <span>Xin chào, <%= user.name %></span>
+            <a href="/logout" class="btn-logout">Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="mobile-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="container dashboard">
+        <div class="sidebar" id="sidebar">
+            <ul class="menu">
+                <li class="active"><a href="#overview" onclick="return navTo('#overview')">🏠 Tổng quan</a></li>
+                <li><a href="#tickets" onclick="return navTo('#tickets')">🎫 Vé của tôi</a></li>
+                <li><a href="#trains" onclick="return navTo('#trains')">🚂 Chuyến tàu</a></li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <!-- Tổng quan -->
+            <section id="overview" class="section active">
+                <h2>Xin chào, <%= user.name %> 👋</h2>
+                <div class="stats-grid">
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e8f5e9;color:#28a745">🎫</div>
+                        <div class="stat-info">
+                            <h4>Vé của bạn</h4>
+                            <div class="stat-value"><%= (tickets && tickets.filter(t => t.status !== 'cancelled').length) || 0 %></div>
+                        </div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#fff3e0;color:#ff9800">🚂</div>
+                        <div class="stat-info">
+                            <h4>Chuyến sắp tới</h4>
+                            <div class="stat-value"><%= (tickets && tickets.filter(t => t.status !== 'cancelled' && new Date(t.DepartureTime) > new Date()).length) || 0 %></div>
+                        </div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e3f2fd;color:#667eea">💰</div>
+                        <div class="stat-info">
+                            <h4>Tổng chi tiêu</h4>
+                            <div class="stat-value"><%= (tickets && tickets.filter(t => t.status !== 'cancelled').reduce((sum,t)=>sum+(t.ticketPrice||0),0)).toLocaleString('vi-VN') %>đ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top:30px">Thông tin cá nhân</h2>
+                <div class="info-card" id="profileCard">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Họ và tên</label>
+                            <input type="text" id="customerName" value="<%= user.name %>" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Mã khách hàng</label>
+                            <input type="text" value="<%= user.id %>" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="text" id="customerPhone" value="<%= user.phone %>" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Địa chỉ</label>
+                            <input type="text" id="customerAddress" value="<%= user.address || 'Chưa cập nhật' %>" readonly>
+                        </div>
+                    </div>
+                    <div class="form-action">
+                        <button class="btn btn-primary" id="editBtn" onclick="enableEditMode()">Sửa</button>
+                        <button class="btn btn-primary" id="saveBtn" onclick="saveCustomerInfo()" style="display:none">Lưu</button>
+                        <button class="btn btn-secondary" id="cancelBtn" onclick="disableEditMode()" style="display:none">Hủy</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vé của tôi -->
+            <section id="tickets" class="section">
+                <h2>Vé của tôi</h2>
+                <div class="filter-chips">
+                    <button class="chip active" onclick="filterMyTickets('all')">Tất cả</button>
+                    <button class="chip" onclick="filterMyTickets('upcoming')">Sắp khởi hành</button>
+                    <button class="chip" onclick="filterMyTickets('completed')">Đã hoàn thành</button>
+                </div>
+                <div class="search-box">
+                    <div class="filter-group">
+                        <label>Theo ngày</label>
+                        <input type="date" id="searchDate" onchange="searchTickets()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Theo địa điểm</label>
+                        <input type="text" id="searchLocation" placeholder="Nhập địa điểm..." oninput="searchTickets()">
+                    </div>
+                    <button class="btn btn-secondary" onclick="resetSearch()">Xóa lọc</button>
+                </div>
+                <table class="table" id="ticketsTable">
+                    <thead>
+                        <tr>
+                            <th>Chuyến tàu</th>
+                            <th>Thởi gian khởi hành</th>
+                            <th>Loại ghế</th>
+                            <th>Giá</th>
+                            <th>Chi nhánh</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsList">
+                        <% if (tickets && tickets.length > 0) { %>
+                            <% tickets.forEach(ticket => { %>
+                                <% const isFuture = new Date(ticket.DepartureTime) > new Date(); %>
+                                <% const isCancelled = ticket.status === 'cancelled'; %>
+                                <tr data-ticket-id="<%= ticket.id %>"
+                                    data-train-id="<%= ticket.IdTrainRide %>"
+                                    data-price="<%= ticket.ticketPrice %>"
+                                    data-departure-time="<%= new Date(ticket.DepartureTime).toLocaleString('vi-VN') %>"
+                                    data-route="<%= ticket.DepartureStation %> → <%= ticket.Destination %>"
+                                    data-seat-type="<%= ticket.SeatClass %>"
+                                    data-status="<%= isCancelled ? 'cancelled' : (isFuture ? 'upcoming' : 'completed') %>"
+                                    data-date-iso="<%= new Date(ticket.DepartureTime).toISOString().split('T')[0] %>">
+                                    <td><%= ticket.DepartureStation %> → <%= ticket.Destination %></td>
+                                    <td><%= new Date(ticket.DepartureTime).toLocaleString('vi-VN') %></td>
+                                    <td><%= ticket.SeatClass || 'N/A' %> <%= ticket.SeatNumber ? '(' + ticket.SeatNumber + ')' : '' %></td>
+                                    <td><%= (ticket.ticketPrice || 0).toLocaleString('vi-VN') %>đ</td>
+                                    <td><%= ticket.branchName || '-' %></td>
+                                    <td>
+                                        <% if (isCancelled) { %>
+                                            <span class="badge badge-danger">Đã hủy</span>
+                                        <% } else if (ticket.status === 'pending') { %>
+                                            <span class="badge badge-warning">Chờ thanh toán</span>
+                                        <% } else if (isFuture) { %>
+                                            <span class="badge badge-info">Sắp khởi hành</span>
+                                        <% } else { %>
+                                            <span class="badge badge-success">Đã hoàn thành</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <button class="btn-small btn-info" onclick="viewTicketDetail('<%= ticket.id %>')">Chi tiết</button>
+                                        <% if (!isCancelled && isFuture) { %>
+                                            <% if (ticket.status === 'pending') { %>
+                                                <button class="btn-small btn-success" onclick="payMyTicket('<%= ticket.id %>')">Thanh toán</button>
+                                            <% } %>
+                                            <button class="btn-small btn-danger" onclick="cancelMyTicket('<%= ticket.id %>')">Hủy</button>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🎫</div><h4>Bạn chưa có vé nào</h4><p>Hãy đặt vé ngay để bắt đầu chuyến đi!</p></div></td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Modal chi tiết vé -->
+            <div id="ticketDetailModal" class="modal" style="display:none">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Chi tiết vé</h3>
+                        <button class="modal-close" onclick="closeTicketDetail()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="modalTicketContent"></div>
+                </div>
+            </div>
+
+            <!-- Chuyến tàu -->
+            <section id="trains" class="section">
+                <h2>Chuyến tàu</h2>
+                <div class="search-box">
+                    <div class="filter-group">
+                        <label>Ga đi</label>
+                        <select id="trainFrom" onchange="searchTrains()">
+                            <option value="">-- Tất cả --</option>
+                            <% if (stations && stations.length > 0) { %>
+                                <% stations.forEach(st => { %>
+                                    <option value="<%= st.Name %>"><%= st.Name %></option>
+                                <% }); %>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Ga đến</label>
+                        <select id="trainTo" onchange="searchTrains()">
+                            <option value="">-- Tất cả --</option>
+                            <% if (stations && stations.length > 0) { %>
+                                <% stations.forEach(st => { %>
+                                    <option value="<%= st.Name %>"><%= st.Name %></option>
+                                <% }); %>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Ngày đi</label>
+                        <input type="date" id="trainDate" onchange="searchTrains()">
+                    </div>
+                    <button class="btn btn-secondary" onclick="resetTrainSearch()">Xóa lọc</button>
+                </div>
+                <table class="table" id="trainsTable">
+                    <thead>
+                        <tr>
+                            <th>Mã chuyến</th>
+                            <th>Tuyến</th>
+                            <th>Khởi hành</th>
+                            <th>Ghế H1</th>
+                            <th>Ghế H2</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trainsList">
+                        <% if (trains && trains.length > 0) { %>
+                            <% trains.forEach(train => { %>
+                                <tr data-from="<%= train.DepartureStation %>" data-to="<%= train.Destination %>">
+                                    <td><%= train.id %></td>
+                                    <td><%= train.DepartureStation %> → <%= train.Destination %></td>
+                                    <td><%= new Date(train.DepartureTime).toLocaleString('vi-VN') %></td>
+                                    <td><%= train.availableClass1 || 0 %></td>
+                                    <td><%= train.availableClass2 || 0 %></td>
+                                    <td><button class="btn btn-sm btn-success" onclick="bookTicket('<%= train.id %>', '<%= train.DepartureStation %> → <%= train.Destination %>', '<%= new Date(train.DepartureTime).toLocaleString('vi-VN') %>', <%= train.availableClass1 || 0 %>, <%= train.availableClass2 || 0 %>)" <%= (train.availableClass1 || 0) + (train.availableClass2 || 0) === 0 ? 'disabled' : '' %>>Đặt vé</button></td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🚂</div><h4>Không có chuyến tàu nào</h4></div></td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Đặt vé</h3>
+                <button class="modal-close" onclick="closeBookingModal()">&times;</button>
+            </div>
+            <form id="bookingForm" onsubmit="submitBooking(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mã chuyến tàu</label>
+                        <input type="text" id="bookTrainId" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Tuyến đường</label>
+                        <input type="text" id="bookRoute" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Thởi gian khởi hành</label>
+                        <input type="text" id="bookDepartureTime" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Loại ghế <span style="color:red">*</span></label>
+                        <select id="bookSeatType" required onchange="updateBookPrice()">
+                            <option value="">-- Chọn loại ghế --</option>
+                            <option value="Hạng 1">Hạng 1 (Cao cấp)</option>
+                            <option value="Hạng 2">Hạng 2 (Tiêu chuẩn)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Số lượng <span style="color:red">*</span></label>
+                        <input type="number" id="bookQuantity" min="1" max="10" value="1" required onchange="updateBookPrice()">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Giá vé (dự kiến)</label>
+                        <input type="text" id="bookPrice" readonly>
+                    </div>
+                </div>
+                <div style="text-align:right; margin-top:15px">
+                    <button type="button" class="btn btn-secondary" onclick="closeBookingModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Xác nhận đặt vé</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/ui-utils.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

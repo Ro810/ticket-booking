@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - TicketBooking</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-form">
+            <div class="form-header">
+                <h1>🎫 TicketBooking</h1>
+                <p>Đăng ký hành khách</p>
+            </div>
+
+            <% if (error) { %>
+                <div class="alert alert-danger"><%= error %></div>
+            <% } %>
+
+            <form method="POST" action="/register">
+                <div class="form-group">
+                    <label>Tên đầy đủ</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Số điện thoại</label>
+                    <input type="tel" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" name="password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
+            </form>
+
+            <div class="auth-link">
+                <p>Bạn đã có tài khoản? <a href="/login?role=passenger">Đăng nhập ngay</a></p>
+                <p><a href="/">← Quay lại chọn vai trò</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

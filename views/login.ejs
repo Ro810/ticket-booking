@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - TicketBooking</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-form">
+            <div class="form-header">
+                <h1>🎫 TicketBooking</h1>
+                <p>Đăng nhập hệ thống</p>
+            </div>
+
+            <% if (error) { %>
+                <div class="alert alert-danger"><%= error %></div>
+            <% } %>
+
+            <form method="POST" action="/login">
+                <input type="hidden" name="role" value="<%= role %>">
+
+                <% if (role === 'passenger') { %>
+                    <div class="form-group">
+                        <label>Tên đăng nhập</label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu</label>
+                        <input type="password" name="password" required>
+                    </div>
+                <% } else { %>
+                    <div class="form-group">
+                        <label>Mã nhân viên</label>
+                        <input type="text" name="username" placeholder="Nhập mã nhân viên" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu</label>
+                        <input type="password" name="password" placeholder="Nhập mật khẩu" required>
+                    </div>
+                <% } %>
+
+                <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+            </form>
+
+            <div class="auth-link">
+                <% if (role === 'passenger') { %>
+                    <p>Bạn chưa có tài khoản? <a href="/register">Đăng ký ngay</a></p>
+                <% } %>
+                <p><a href="/">← Quay lại chọn vai trò</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

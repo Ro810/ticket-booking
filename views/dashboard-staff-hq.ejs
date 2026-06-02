@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Quản lý - TicketBooking</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-manager-id="<%= user.id %>">
+    <div class="navbar">
+        <div style="display:flex;align-items:center;gap:10px">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="navbar-brand">🎫 TicketBooking - Quản lý</div>
+        </div>
+        <div class="navbar-right">
+            <span><%= user.fullname %></span>
+            <a href="/logout" class="btn-logout">Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="mobile-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="container dashboard">
+        <div class="sidebar" id="sidebar">
+            <ul class="menu">
+                <li class="active"><a href="#overview" onclick="return navTo('#overview')">📊 Tổng quan</a></li>
+                <li><a href="#users" onclick="return navTo('#users')">👥 Ngưởi dùng</a></li>
+                <li><a href="#trains" onclick="return navTo('#trains')">🚂 Chuyến tàu</a></li>
+                <li><a href="#stations" onclick="return navTo('#stations')">🚉 Ga tàu</a></li>
+                <li><a href="#tickets" onclick="return navTo('#tickets')">🎫 Vé toàn hệ thống</a></li>
+                <li><a href="#reports" onclick="return navTo('#reports')">📈 Báo cáo</a></li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <!-- Overview -->
+            <section id="overview" class="section active">
+                <h2>Tổng quan hệ thống</h2>
+                <div class="stats-grid">
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e8f5e9;color:#28a745">💰</div>
+                        <div class="stat-info">
+                            <h4>Tổng doanh thu</h4>
+                            <div class="stat-value"><%= (stats.totalRevenue || 0).toLocaleString('vi-VN') %>đ</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e3f2fd;color:#667eea">🎫</div>
+                        <div class="stat-info">
+                            <h4>Tổng vé bán</h4>
+                            <div class="stat-value"><%= stats.totalTickets || 0 %></div>
+                        </div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#f3e5f5;color:#764ba2">👤</div>
+                        <div class="stat-info">
+                            <h4>Khách hàng</h4>
+                            <div class="stat-value"><%= stats.totalCustomers || 0 %></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top:30px">Thông tin cá nhân</h2>
+                <div class="info-card">
+                    <p><strong>Họ tên:</strong> <%= user.fullname %></p>
+                    <p><strong>Số điện thoại:</strong> <%= user.phone %></p>
+                    <p><strong>Mã nhân viên:</strong> <%= user.id %></p>
+                    <p><strong>Mức lương:</strong> <%= (user.salary || 0).toLocaleString('vi-VN') %> VNĐ</p>
+                    <p><strong>Chi nhánh:</strong> <%= user.idBranch %></p>
+                    <p><strong>Chức vụ:</strong> <%= user.employeeRole %></p>
+                </div>
+            </section>
+
+            <!-- Users -->
+            <section id="users" class="section">
+                <h2>Quản lý ngưởi dùng</h2>
+                <div class="info-tabs" style="margin-bottom:20px">
+                    <button class="tab-btn active" onclick="switchUserTab('customersTab', this)">Khách hàng</button>
+                </div>
+
+                <!-- Customers -->
+                <div id="customersTab" class="tab-content active">
+                    <div class="search-box">
+                        <input type="text" id="customerSearch" placeholder="🔍 Tìm theo tên, SĐT..." oninput="searchCustomersTable()">
+                        <button class="btn btn-success" onclick="openCustomerModal()">+ Thêm khách hàng</button>
+                    </div>
+                    <table class="table" id="customersTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('customersTable',0)">Mã KH</th>
+                                <th class="sortable" onclick="sortTable('customersTable',1)">Tên</th>
+                                <th class="sortable" onclick="sortTable('customersTable',2)">SĐT</th>
+                                <th>Địa chỉ</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <% if (customers && customers.length > 0) { %>
+                                <% customers.forEach(c => { %>
+                                    <tr data-cid="<%= c.id %>" data-name="<%= c.Name %>" data-phone="<%= c.phoneNumber %>">
+                                        <td><%= c.id %></td>
+                                        <td><%= c.Name %></td>
+                                        <td><%= c.phoneNumber %></td>
+                                        <td><%= c.Address || '-' %></td>
+                                        <td>
+                                            <div class="row-actions">
+                                                <button class="btn-small" style="background:#17a2b8;color:#fff" onclick="viewCustomerDetail('<%= c.id %>')">Chi tiết</button>
+                                                <button class="btn-small" onclick="editCustomerRow('<%= c.id %>', '<%= c.Name %>', '<%= c.phoneNumber %>', '<%= c.Address %>')">Sửa</button>
+                                                <button class="btn-small btn-danger" onclick="deleteCustomerRow('<%= c.id %>')">Xóa</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">👥</div><h4>Không có khách hàng nào</h4></div></td></tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+            </section>
+
+            <!-- Trains -->
+            <section id="trains" class="section">
+                <h2>Quản lý chuyến tàu</h2>
+                <div class="search-box">
+                    <input type="text" id="trainSearch" placeholder="🔍 Tìm theo tuyến..." oninput="searchTrainsTable()">
+                    <button class="btn btn-success" onclick="openTrainModal()">+ Thêm chuyến tàu</button>
+                </div>
+                <table class="table" id="trainsTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortTable('trainsTable',0)">Mã chuyến</th>
+                            <th class="sortable" onclick="sortTable('trainsTable',1)">Tuyến</th>
+                            <th class="sortable" onclick="sortTable('trainsTable',2)">Khởi hành</th>
+                            <th>Tàu</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trainsTableBody">
+                        <% if (trains && trains.length > 0) { %>
+                            <% trains.forEach(tr => { %>
+                                <tr data-train-id="<%= tr.id %>" data-route="<%= tr.DepartureStation %> → <%= tr.Destination %>">
+                                    <td><%= tr.id %></td>
+                                    <td><%= tr.DepartureStation %> → <%= tr.Destination %></td>
+                                    <td><%= new Date(tr.DepartureTime).toLocaleString('vi-VN') %></td>
+                                    <td><%= tr.idTrain || '-' %></td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <button class="btn-small" style="background:#17a2b8;color:#fff" onclick="viewTrainDetail('<%= tr.id %>')">Chi tiết</button>
+                                            <button class="btn-small" onclick="editTrainRow('<%= tr.id %>', '<%= tr.DepartureStation %>', '<%= tr.Destination %>', '<%= tr.DepartureTime %>', '<%= tr.idTrain %>')">Sửa</button>
+                                            <button class="btn-small btn-danger" onclick="deleteTrainRow('<%= tr.id %>')">Xóa</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🚂</div><h4>Không có chuyến tàu nào</h4></div></td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Stations -->
+            <section id="stations" class="section">
+                <h2>Quản lý ga tàu</h2>
+                <div class="search-box">
+                    <input type="text" id="stationSearch" placeholder="🔍 Tìm theo tên ga..." oninput="searchStationsTable()">
+                    <button class="btn btn-success" onclick="openStationModal()">+ Thêm ga tàu</button>
+                </div>
+                <table class="table" id="stationsTable">
+                    <thead>
+                        <tr>
+                            <th>Tên ga</th>
+                            <th>Địa chỉ</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stationsTableBody">
+                        <% if (locals.stations && stations.length > 0) { %>
+                            <% stations.forEach(st => { %>
+                                <tr data-name="<%= st.Name %>" data-search="<%= st.Name %> <%= st.Address || '' %>">
+                                    <td><%= st.Name %></td>
+                                    <td><%= st.Address || '-' %></td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <button class="btn-small" onclick="editStationRow('<%= st.Name %>', '<%= st.Address || '' %>')">Sửa</button>
+                                            <button class="btn-small btn-danger" onclick="deleteStationRow('<%= st.Name %>')">Xóa</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="3"><div class="empty-state"><div class="empty-state-icon">🚉</div><h4>Không có ga tàu nào</h4></div></td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Tickets -->
+            <section id="tickets" class="section">
+                <h2>Vé toàn hệ thống</h2>
+                <div class="search-box" style="gap:10px;flex-wrap:wrap">
+                    <input type="text" id="ticketSearch" placeholder="🔍 Tìm theo mã vé, khách hàng..." oninput="searchTicketsTable()">
+                    <select id="ticketBranchFilter" onchange="applyBranchFilter('tickets')">
+                        <option value="all" <%= branchFilter === 'all' ? 'selected' : '' %>>Toàn hệ thống</option>
+                        <% if (locals.branches && branches.length > 0) { %>
+                            <% branches.forEach(b => { %>
+                                <option value="<%= b.id %>" <%= branchFilter === b.id ? 'selected' : '' %>><%= b.name %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                    <button class="btn btn-primary" onclick="applyBranchFilter('tickets')">Lọc</button>
+                </div>
+                <table class="table" id="ticketsTable">
+                    <thead>
+                        <tr>
+                            <th>Mã vé</th>
+                            <th>Khách hàng</th>
+                            <th>Chuyến tàu</th>
+                            <th>Loại ghế</th>
+                            <th>Giá vé</th>
+                            <th>Chi nhánh</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTableBody">
+                        <% if (tickets && tickets.length > 0) { %>
+                            <% tickets.forEach(t => { %>
+                                <% const isFuture = new Date(t.DepartureTime) > new Date(); const tStatus = t.status || 'paid'; const canManage = !t.idBranch || t.idBranch === user.idBranch; %>
+                                <tr data-ticket-id="<%= t.id %>" data-search="<%= t.id %> <%= t.customerName || '' %>">
+                                    <td><%= t.id %></td>
+                                    <td><%= t.customerName || t.idCustomer %></td>
+                                    <td><%= t.DepartureStation %> → <%= t.Destination %></td>
+                                    <td><%= t.SeatClass || '-' %> <%= t.SeatNumber ? '(' + t.SeatNumber + ')' : '' %></td>
+                                    <td><%= (t.ticketPrice || 0).toLocaleString('vi-VN') %>đ</td>
+                                    <td><%= t.branchName || '-' %></td>
+                                    <td>
+                                        <% if (tStatus === 'cancelled') { %>
+                                            <span class="badge badge-danger">Đã hủy</span>
+                                        <% } else if (tStatus === 'pending') { %>
+                                            <span class="badge badge-warning">Chờ thanh toán</span>
+                                        <% } else if (isFuture) { %>
+                                            <span class="badge badge-info">Sắp khởi hành</span>
+                                        <% } else { %>
+                                            <span class="badge badge-success">Đã hoàn thành</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (tStatus !== 'cancelled' && canManage) { %>
+                                            <div class="row-actions">
+                                                <% if (tStatus === 'pending') { %>
+                                                    <button class="btn-small btn-success" onclick="updateTicketStatus('<%= t.id %>', 'paid')">Xác nhận TT</button>
+                                                <% } else { %>
+                                                    <button class="btn-small" onclick="updateTicketStatus('<%= t.id %>', 'pending')">Chờ TT</button>
+                                                <% } %>
+                                                <button class="btn-small btn-danger" onclick="cancelTicketRow('<%= t.id %>')">Hủy</button>
+                                            </div>
+                                        <% } else { %>
+                                            <span style="color:#999">-</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">🎫</div><h4>Chưa có vé nào</h4></div></td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Reports -->
+            <section id="reports" class="section">
+                <h2>Báo cáo thống kê</h2>
+                <div class="search-box" style="gap:10px;flex-wrap:wrap;margin-bottom:20px">
+                    <select id="reportBranchFilter" onchange="applyBranchFilter('reports')">
+                        <option value="all" <%= branchFilter === 'all' ? 'selected' : '' %>>Toàn hệ thống</option>
+                        <% if (locals.branches && branches.length > 0) { %>
+                            <% branches.forEach(b => { %>
+                                <option value="<%= b.id %>" <%= branchFilter === b.id ? 'selected' : '' %><%= b.name %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                    <button class="btn btn-primary" onclick="applyBranchFilter('reports')">Lọc</button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e8f5e9;color:#28a745">💰</div>
+                        <div class="stat-info">
+                            <h4>Tổng doanh thu</h4>
+                            <div class="stat-value"><%= (stats.totalRevenue || 0).toLocaleString('vi-VN') %>đ</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e3f2fd;color:#667eea">🎫</div>
+                        <div class="stat-info">
+                            <h4>Tổng vé bán</h4>
+                            <div class="stat-value"><%= stats.totalTickets || 0 %></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top:25px">Doanh số theo chi nhánh</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Chi nhánh</th>
+                            <th>Số vé bán</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (locals.branchStats && locals.branchStats.length > 0) { %>
+                            <% locals.branchStats.forEach(b => { %>
+                                <tr>
+                                    <td><%= b.branchName || 'Chưa xác định' %></td>
+                                    <td><%= b.ticketCount || 0 %></td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="2"><div class="empty-state"><div class="empty-state-icon">📊</div><h4>Chưa có dữ liệu</h4></div></td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+
+                <div class="stats-grid" style="margin-top:25px">
+                    <div class="stat-card-mini" style="flex-direction:column;align-items:stretch">
+                        <h4 style="margin-bottom:10px">Doanh thu theo chi nhánh</h4>
+                        <canvas id="chartBranch"></canvas>
+                    </div>
+                    <div class="stat-card-mini" style="flex-direction:column;align-items:stretch">
+                        <h4 style="margin-bottom:10px">Vé theo loại ghế</h4>
+                        <canvas id="chartSeat"></canvas>
+                    </div>
+                </div>
+                <div class="stat-card-mini" style="flex-direction:column;align-items:stretch;margin-top:20px">
+                    <h4 style="margin-bottom:10px">Doanh thu theo tháng</h4>
+                    <canvas id="chartMonth"></canvas>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modal: Customer Add/Edit -->
+    <div id="customerModal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="customerModalTitle">Thêm khách hàng</h3>
+                <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
+            </div>
+            <form id="customerForm" onsubmit="saveCustomerRow(event)">
+                <input type="hidden" id="custId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Họ tên <span style="color:red">*</span></label>
+                        <input type="text" id="custName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại <span style="color:red">*</span></label>
+                        <input type="tel" id="custPhone" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Username <span style="color:red">*</span></label>
+                        <input type="text" id="custUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu <span style="color:red">*</span></label>
+                        <input type="password" id="custPassword" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Địa chỉ</label>
+                        <input type="text" id="custAddress">
+                    </div>
+                </div>
+                <div style="text-align:right; margin-top:15px">
+                    <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Train Add/Edit -->
+    <div id="trainModal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="trainModalTitle">Thêm chuyến tàu</h3>
+                <button class="modal-close" onclick="closeTrainModal()">&times;</button>
+            </div>
+            <form id="trainForm" onsubmit="saveTrainRow(event)">
+                <input type="hidden" id="trId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mã chuyến <span style="color:red">*</span></label>
+                        <input type="text" id="trCode" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mã tàu <span style="color:red">*</span></label>
+                        <input type="text" id="trTrainId" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ga đi <span style="color:red">*</span></label>
+                        <input type="text" id="trFrom" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ga đến <span style="color:red">*</span></label>
+                        <input type="text" id="trTo" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                        <label>Thởi gian khởi hành <span style="color:red">*</span></label>
+                        <input type="datetime-local" id="trDeparture" required>
+                    </div>
+                </div>
+                <div style="text-align:right; margin-top:15px">
+                    <button type="button" class="btn btn-secondary" onclick="closeTrainModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Station Add/Edit -->
+    <div id="stationModal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="stationModalTitle">Thêm ga tàu</h3>
+                <button class="modal-close" onclick="closeStationModal()">&times;</button>
+            </div>
+            <form id="stationForm" onsubmit="saveStationRow(event)">
+                <input type="hidden" id="stationOldName">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tên ga <span style="color:red">*</span></label>
+                        <input type="text" id="stationName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Địa chỉ</label>
+                        <input type="text" id="stationAddress">
+                    </div>
+                </div>
+                <div style="text-align:right; margin-top:15px">
+                    <button type="button" class="btn btn-secondary" onclick="closeStationModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Customer Detail -->
+    <div id="customerDetailModal" class="modal" style="display:none">
+        <div class="modal-content" style="max-width:700px;max-height:90vh;overflow-y:auto">
+            <div class="modal-header">
+                <h3>Chi tiết khách hàng</h3>
+                <button class="modal-close" onclick="closeCustomerDetailModal()">&times;</button>
+            </div>
+            <div id="customerDetailContent" style="padding:10px 0">
+                <div class="info-card" style="margin-bottom:15px">
+                    <p><strong>Mã KH:</strong> <span id="cdId">-</span></p>
+                    <p><strong>Họ tên:</strong> <span id="cdName">-</span></p>
+                    <p><strong>SĐT:</strong> <span id="cdPhone">-</span></p>
+                    <p><strong>Địa chỉ:</strong> <span id="cdAddress">-</span></p>
+                    <p><strong>Username:</strong> <span id="cdUsername">-</span></p>
+                </div>
+                <h4 style="margin:15px 0 10px">🎫 Vé đã đặt</h4>
+                <table class="table" id="cdTicketsTable">
+                    <thead>
+                        <tr>
+                            <th>Mã vé</th>
+                            <th>Chuyến tàu</th>
+                            <th>Loại ghế</th>
+                            <th>Giá vé</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cdTicketsBody">
+                        <tr><td colspan="5"><div class="empty-state"><h4>Đang tải...</h4></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align:right; margin-top:15px">
+                <button type="button" class="btn btn-secondary" onclick="closeCustomerDetailModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Train Detail -->
+    <div id="trainDetailModal" class="modal" style="display:none">
+        <div class="modal-content" style="max-width:700px;max-height:90vh;overflow-y:auto">
+            <div class="modal-header">
+                <h3>Chi tiết chuyến tàu</h3>
+                <button class="modal-close" onclick="closeTrainDetailModal()">&times;</button>
+            </div>
+            <div id="trainDetailContent" style="padding:10px 0">
+                <div class="info-card" style="margin-bottom:15px">
+                    <p><strong>Mã chuyến:</strong> <span id="tdId">-</span></p>
+                    <p><strong>Tuyến:</strong> <span id="tdRoute">-</span></p>
+                    <p><strong>Khởi hành:</strong> <span id="tdTime">-</span></p>
+                    <p><strong>Mã tàu:</strong> <span id="tdTrain">-</span></p>
+                </div>
+                <h4 style="margin:15px 0 10px">🪑 Ghế trống</h4>
+                <div class="stats-grid" style="margin-bottom:15px">
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e3f2fd;color:#667eea">1️⃣</div>
+                        <div class="stat-info">
+                            <h4>Hạng 1</h4>
+                            <div class="stat-value" id="tdSeat1">-</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#f3e5f5;color:#764ba2">2️⃣</div>
+                        <div class="stat-info">
+                            <h4>Hạng 2</h4>
+                            <div class="stat-value" id="tdSeat2">-</div>
+                        </div>
+                    </div>
+                </div>
+                <h4 style="margin:15px 0 10px">🎫 Đặt vé cho khách</h4>
+                <form id="bookTicketForm" onsubmit="bookTicketForCustomer(event)">
+                    <input type="hidden" id="btTrainRideId">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:2">
+                            <label>Khách hàng <span style="color:red">*</span></label>
+                            <select id="btCustomer" required>
+                                <option value="">-- Chọn khách hàng --</option>
+                                <% if (customers && customers.length > 0) { %>
+                                    <% customers.forEach(c => { %>
+                                        <option value="<%= c.id %>"><%= c.id %> - <%= c.Name %> (<%= c.phoneNumber %>)</option>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Hạng ghế <span style="color:red">*</span></label>
+                            <select id="btSeatClass" required>
+                                <option value="">-- Chọn --</option>
+                                <option value="Hạng 1">Hạng 1</option>
+                                <option value="Hạng 2">Hạng 2</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="max-width:100px">
+                            <label>Số lượng <span style="color:red">*</span></label>
+                            <input type="number" id="btQuantity" min="1" max="10" value="1" required>
+                        </div>
+                    </div>
+                    <div style="text-align:right; margin-top:10px">
+                        <button type="submit" class="btn btn-success">Đặt vé</button>
+                    </div>
+                </form>
+            </div>
+            <div style="text-align:right; margin-top:15px">
+                <button type="button" class="btn btn-secondary" onclick="closeTrainDetailModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script> window.allCustomers = <%- JSON.stringify(customers || []) %>; </script>
+    <script src="/js/ui-utils.js"></script>
+    <script src="/js/manager-dashboard.js"></script>
+    <script src="/js/station-management.js"></script>
+    <script>
+      const chartData = <%- JSON.stringify(locals.chartData || {}) %>;
+      const branchStats = <%- JSON.stringify(locals.branchStats || []) %>;
+      if (branchStats.length) {
+        new Chart(document.getElementById('chartBranch'), {
+          type: 'bar',
+          data: {
+            labels: branchStats.map(d => d.branchName || 'Khác'),
+            datasets: [{
+              label: 'Số vé',
+              data: branchStats.map(d => d.ticketCount),
+              backgroundColor: ['#667eea', '#764ba2', '#28a745']
+            }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+      }
+      if (chartData.bySeat && chartData.bySeat.length) {
+        new Chart(document.getElementById('chartSeat'), {
+          type: 'doughnut',
+          data: {
+            labels: chartData.bySeat.map(d => d.SeatType),
+            datasets: [{
+              data: chartData.bySeat.map(d => d.cnt),
+              backgroundColor: ['#667eea', '#764ba2']
+            }]
+          },
+          options: { responsive: true }
+        });
+      }
+      if (chartData.byMonth && chartData.byMonth.length) {
+        new Chart(document.getElementById('chartMonth'), {
+          type: 'line',
+          data: {
+            labels: chartData.byMonth.map(d => d.month),
+            datasets: [{
+              label: 'Số vé',
+              data: chartData.byMonth.map(d => d.cnt),
+              borderColor: '#667eea',
+              fill: false,
+              tension: 0.3
+            }]
+          },
+          options: { responsive: true }
+        });
+      }
+    </script>
+</body>
+</html>

@@ -1,0 +1,5086 @@
+HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG
+
+KHOA CƠ BẢN I
+
+BỘ MÔN CƠ SỞ DỮ LIỆU PHÂN TÁN
+
+
+
+
+
+BÁO CÁO BÀI TẬP LỚN
+CƠ SỞ DỮ LIỆU PHÂN TÁN
+
+ĐỀ TÀI: QUẢN LÝ HỆ THỐNG BÁN VÉ
+TÀU HỎA CHO CÔNG TY ĐƯỜNG SẮT
+
+
+
+Giảng viên hướng dẫn
+
+: Kim Ngọc Bách
+
+Lớp
+
+: 10
+
+Nhóm
+
+: 05
+
+Danh sách thành viên
+
+: 
+
+Nguyễn Sỹ Hoàng - B23DCCN340
+
+Phạm Văn Vỹ - B23DCCN954
+
+Trần Đỗ Lan Phương - B23DCCN667
+
+
+
+
+
+Hà Nội – 2026
+
+
+
+
+
+
+
+
+
+MỤC LỤC
+
+	PHẦN 1: ĐẶT VẤN ĐỀ	4
+
+	I. Giới thiệu	4
+
+	II. Vị trí các máy trạm và máy chủ khi triển khai dự án	5
+
+	III. Các đối tượng tham gia sử dụng dự án	5
+
+	PHẦN 2: PHÂN TÍCH	6
+
+	I. Các chức năng chính của hệ thống trong dự án	6
+
+	II. Phân tích chức năng của từng vị trí thực hiện dự án	6
+
+	III. Chức năng của máy trạm và máy chủ	6
+
+	IV. Phân tích cơ sở dữ liệu	8
+
+	PHẦN 3: THIẾT KẾ	12
+
+	I. Thiết kế hệ thống mạng tổng quan	12
+
+	II. Thiết kế cơ sở dữ liệu của hệ thống	13
+
+	III. Thiết kế cơ sở dữ liệu phân tán	17
+
+	IV. Thiết kế lược đồ nhân bản, đồng bộ hóa	20
+
+	V. Thiết kế vật lý các trạm	21
+
+	PHẦN 4: CÀI ĐẶT	23
+
+	I. Cài đặt SQL Server 2025	23
+
+	II. Cài đặt tường lửa (firewall) để mở cổng cho SQL	39
+
+	III. Chuẩn bị Folder REPLDATA	49
+
+	IV. Kết nối máy trạm và các chi nhánh bằng phần mềm radmin VPN	52
+
+	V. Tạo Database QLBV	56
+
+	VI. Configure distribution	61
+
+	VII. Tạo Publication Database	69
+
+	VIII. Tạo Link Server	95
+
+	PHẦN 5: TRIGGER	102
+
+	1. Trigger cập nhật, thêm mới nhân viên tại máy trạm	102
+
+	2. Trigger cập nhật, thêm mới vé tại máy trạm	102
+
+	3. Trigger kiểm tra và cập nhật ga tàu	103
+
+	4. Trigger kiểm tra và xóa ga tàu	104
+
+	5. Trigger kiểm tra và cập nhật tòa hỏa	105
+
+	6. Trigger kiểm tra và xóa tàu hỏa	106
+
+	7. Trigger kiểm tra xem tàu hỏa đã khởi hành chưa	107
+
+	PHẦN 6: GIAO DIỆN HỆ THỐNG ĐẶT VÉ	109
+
+	Phần 7: PHÂN TÍCH CÁC TÌNH HUỐNG NGHIỆP VỤ PHÂN TÁN	113
+
+	I. Tình huống 1: Tra cứu số lượng vé còn lại của một chuyến tàu trên toàn hệ thống	114
+
+	II. Tình huống 2: Bán vé khi số lượng vé còn lại không đủ hoặc có nhiều chi nhánh cùng bán vé	115
+
+	III. Nhận xét	117
+
+	PHẦN 8: XÂY DỰNG CÁC TRUY VẤN PHÂN TÁN	118
+
+	I. Mục tiêu	118
+
+	II. Truy vấn 1: Tra cứu danh sách ghế còn trống của một chuyến tàu	118
+
+	III. Truy vấn 2: Tìm các chuyến tàu còn ghế phù hợp với tuyến đường, ngày đi và hạng ghế	119
+
+	IV. Truy vấn 3: Thống kê doanh thu theo tháng của từng chi nhánh và toàn hệ thống	121
+
+	V. Truy vấn 4: Tìm các tuyến đường bán chạy nhất toàn hệ thống	123
+
+	VI. Truy vấn 5: Tìm các chuyến tàu có vé được bán tại nhiều chi nhánh	125
+
+	VII. Nhận xét chung	126
+
+	PHẦN 9: XỬ LÝ ĐỒNG THỜI VÀ ĐẢM BẢO NHẤT QUÁN DỮ LIỆU	128
+
+	I. Bài toán đặt ra	128
+
+	II. Cách biểu diễn số ghế còn trống	128
+
+	III. Nguyên tắc đảm bảo nhất quán dữ liệu	129
+
+	IV. Quy trình đặt vé an toàn	131
+
+	V. Cài đặt các ràng buộc dữ liệu	132
+
+	VI. Stored procedure đặt vé an toàn	133
+
+	VII. Stored procedure hủy vé	136
+
+	VIII. Mô phỏng hai người đặt cùng một ghế	138
+
+	IX. Ảnh hưởng của replication	141
+
+	X. Đánh giá kết quả	141
+
+	PHẦN 10: KIỂM THỬ VÀ ĐÁNH GIÁ HỆ THỐNG	143
+
+	I. Mục tiêu kiểm thử	143
+
+	II. Dữ liệu kiểm thử	143
+
+	III. Kiểm thử truy vấn phân tán	145
+
+	1. Test case 01: Tra cứu danh sách ghế còn trống của một chuyến tàu	145
+
+	2. Test case 02: Tìm chuyến tàu còn ghế theo tuyến đường, ngày đi và hạng ghế	146
+
+	3. Test case 03: Thống kê doanh thu của từng chi nhánh và toàn hệ thống	147
+
+	4. Test case 04: Tìm các tuyến đường bán chạy nhất	148
+
+	5. Test case 05: Tìm chuyến tàu có vé được bán tại nhiều chi nhánh	149
+
+	IV. Kiểm thử nghiệp vụ đặt vé	150
+
+	1. Test case 06: Đặt vé thành công khi ghế còn trống	150
+
+	2. Test case 07: Hủy vé và trả lại trạng thái ghế	152
+
+	V. Kiểm thử xử lý đồng thời	153
+
+	Test case 08: Hai khách hàng đồng thời đặt cùng một ghế	153
+
+	VI. Kiểm thử replication	156
+
+	Test case 09: Đồng bộ dữ liệu từ Server Hà Nội về Server chi nhánh	156
+
+	VII. Kiểm thử truy vấn thông qua Linked Server	157
+
+	Test case 10: Đọc dữ liệu vé tại chi nhánh từ Server Hà Nội	157
+
+	VIII. Bảng tổng hợp kết quả kiểm thử	158
+
+	IX. Đánh giá hệ thống	159
+
+	1. Ưu điểm	159
+
+	2. Hạn chế	160
+
+	3. Hướng phát triển	160
+
+	X. Kết luận	161
+
+
+
+
+
+
+PHẦN 1: ĐẶT VẤN ĐỀ
+
+Giới thiệu
+
+Nhu cầu và tầm quan trọng của dự án
+
+Trong thời gian gần đây, ngành Giao thông Vận tải của Việt Nam ngày càng phát triển. Với nhu cầu đi lại giữa các vùng miền ngày càng gia tăng, đồng thời đòi hỏi chi phí không quá đắt đỏ, việc sử dụng phương tiện tàu hỏa đã và đang được rất nhiều người lựa chọn. Việc sử dụng tàu hỏa có nhiều ưu điểm: chi phí tương đối thấp, tốc độ khá nhanh và ổn định, ít bị ảnh hưởng bởi điều kiện thời tiết, …
+
+Tuy nhiên, khi số lượng người sử dụng phương tiện ngày càng gia tăng thì khối lượng công việc của hệ thống cơ sở dữ liệu là rất lớn vì phải quản lý chặt chẽ và hợp lý đến từng khách hàng, quản lý hồ sơ của các nhân viên, ga tàu, chuyến tàu là rất phức tạp. Do công nghệ thông tin ngày càng phát triển, khách hàng có thể đặt vé online thông qua các website của công ty, làm nhu cầu về công tác quản lý phải được nâng cao hơn nữa.
+
+Một điều rất quan trọng, đó là trụ sở của một công ty đường sắt có thể có nhiều cơ sở tại các địa phương khác nhau (một trụ sở chính tại Hà Nội và các cơ sở khác tại Hải Phòng, Quảng Ninh, Nghệ An, Đà Nẵng, Phú Yên, Hồ Chí Minh, Cần Thơ…), do vậy nên lượng dữ liệu sau mỗi năm lại tăng lên rất nhiều dẫn tới thời gian truy xuất dữ liệu rất lâu, gây ảnh hưởng tới công tác quản lý của công ty cũng như trải nghiệm sử dụng dịch vụ của khách hàng. Do đó, việc xây dựng hệ thống bán vé tàu hỏa dựa trên cơ sở dữ liệu tập trung không thể giải quyết được vấn đề trên. Đây là lý do vì sao ta phải dùng hệ thống sử dụng cơ sở dữ liệu phân tán. Các sản phẩm của các hệ thống phân tán đã xuất hiện nhiều trên thị trường và từng bước chứng minh được tính ưu việt có nó so với các hệ thống tập trung truyền thống
+
+Sơ lược về dự án
+
+Thông tin hành khách, thông tin vé, thông tin tàu hỏa, thông tin chuyến tàu, thông tin nhân viên là dữ liệu của trụ sở chính và cơ sở, có thể cập nhật tại máy trạm và máy chủ
+
+Trụ sở chính đặt tại Hà Nội:
+
+Chức năng: Quản lý dữ liệu toàn hệ thống
+
+Dữ liệu: Tất cả dữ liệu
+
+Nguồn dữ liệu: do các cơ sở trả về và nhân viên tại trụ sở chính nhập
+
+Dữ liệu chuyển đến: các cơ sở
+
+Đối tượng sử dụng: Nhân viên của trụ sở chính
+
+Các cơ sở đặt tại Đà Nẵng, Thành phố Hồ Chí Minh:
+
+Chức năng: Quản lý dữ liệu tại trụ sở
+
+Dữ liệu: Thông tin cơ sở, Thông tin hành khách, thông tin vé, thông tin tàu hỏa, thông tin chuyến tàu, thông tin nhân viên tại mỗi cơ sở
+
+Nguồn dữ liệu: Do trụ sở chính gửi về và nhân viên tại cơ sở nhập
+
+Dữ liệu chuyển đến: trụ sở chính 
+
+Đối tượng sử dụng: Nhân viên tại cơ sở, khách hàng
+
+Các quyền truy vấn:
+
+Nhân viên trụ sở chính: Tất cả các quyền
+
+Nhân viên tại cơ sở: thêm, sửa, xóa thông tin hành khách, thông tin vé.
+
+Hành khách: Đọc thông tin vé, thông tin tàu hỏa, thông tin chuyến tàu
+
+Vị trí các máy trạm và máy chủ khi triển khai dự án
+
+Dự án được triển khai với một máy chủ và hai máy trạm:
+
+Vị trí 1: Server chi nhánh, nơi đặt máy trạm tại cơ sở Đà Nẵng
+
+Vị trí 2: Server chi nhánh, nơi đặt máy trạm tại cơ sở Thành phố Hồ Chí Minh
+
+Vị trí 3: Server tổng, nơi đặt máy chủ tại trụ sở chính ở Hà Nội
+
+Các đối tượng tham gia sử dụng dự án
+
+Hành khách: Xem thông tin của bản thân, thông tin vé, thông tin chuyến tàu
+
+Nhân viên tại cơ sở:
+
+Xem thông tin bản thân, thông tin các chuyến tàu và thông tin tàu hỏa
+
+Quản lý thông tin khách hàng, thông tin vé
+
+Thống kê doanh số tại trụ sở
+
+Nhân viên tại trụ sở:
+
+Quản lý tất cả dữ liệu của hệ thống, cũng như có tất cả các quyền của đối tượng trên
+
+Xem báo cáo thống kê tại các trụ sở
+
+
+
+
+PHẦN 2: PHÂN TÍCH
+
+Các chức năng chính của hệ thống trong dự án
+
+Các chức năng nhiệm vụ trong hệ thống “Quản lý hệ thống bán vé tàu hỏa cho công ty đường sắt”:
+
+Quản lý thông tin hành khách (1)
+
+Quản lý thông tin vé (2)
+
+Quản lý thông tin tàu hỏa (3)
+
+Quản lý thông tin chuyến tàu (4)
+
+Quản lý thông tin nhân viên (5)
+
+Thống kê (6)
+
+Phân tích chức năng của từng vị trí thực hiện dự án
+
+Tại trụ sở chính Hà Nội
+
+Quản lý tổng thể các thông tin về Ga tàu hỏa, Tàu hỏa, Chuyến tàu, Nhân viên, Hành khách, Vé tàu
+
+Có quyền thêm, sửa, xóa thông tin của các bảng Ga tàu hỏa, Tàu hỏa, Chuyến tàu rồi tự động cập nhật về cho các đại lý
+
+Tại các chi nhánh cơ sở ở Đà Nẵng, Thành phố Hồ Chí Minh
+
+Quản lý thông tin tại chi nhánh của mình gồm Nhân viên, Hành khách, Vé:
+
+Thông tin Nhân viên sẽ được cập nhật lên Server định kỳ theo tháng
+
+Thông tin về Vé và Hành Khách sẽ được cập nhật lên trụ sở chính định kỳ vào 23h30 hằng ngày
+
+Các chi nhánh cơ sở chỉ có quyền xem thông tin về Ga tàu hỏa, Tàu hỏa, Chuyến tàu nhưng không có quyền sửa các thông tin này
+
+Chức năng của máy trạm và máy chủ
+
+Chức năng của máy trạm
+
+Chức năng Quản lý hành khách
+
+Giúp các nhân viên có thể thực hiện các thao tác như thêm, sửa, xóa các thông tin của hành khách. Các thông tin sẽ được lưu trữ trong cơ sở dữ liệu
+
+Các thông tin quản lý bao gồm:
+
+Mã hành khách được lấy số thứ tự tiếp theo
+
+Nhập tên hành khách
+
+Nhập địa chỉ
+
+Nhập số điện thoại
+
+Nhập số CCCD
+
+Chức năng Quản lý nhân viên
+
+Giúp các quản lý tại cơ sở chi nhánh có thể thực hiện các thao tác thêm, sửa, xóa thông tin nhân viên tại cơ sở. Các thông tin sẽ được lưu trữ trong cơ sở dữ liệu
+
+Các thông tin của nhân viên bao gồm:
+
+Mã nhân viên được lấy trong bảng hành khách
+
+Tạo thêm 1 tài khoản đăng nhập cho nhân viên với tên đăng nhâp và mật khẩu
+
+Nhập chức vụ của nhân viên
+
+Chức năng Quản lý vé
+
+Giúp các người bán vé thực hiện các thao tác bán vé online hoặc offline, cập nhập thông tin đặt vé online
+
+Thông tin đặt vé của khách hàng: Mã KH, chuyến bay, ưu đãi, giá vé
+
+Chức năng xem và tìm kiếm thông tin liên quan đến ga tàu, chuyến tàu, tàu hỏa
+
+Chức năng thống kê 
+
+Thống kê số Hành khách, số Tiền, số Vé bán, … theo một số điều kiện nhất định như: theo khoảng thời gian (từ ngày đến ngày), …
+
+Chức năng của máy chủ
+
+Có toàn bộ chức năng của máy trạm
+
+Chức năng quản lý thông tin chuyến tàu
+
+Giúp người quản lý thực hiện các thao tác như: Thêm, sửa, xóa các thông tin chi tiết của chuyến tàu. Dữ liệu chuyến tàu tại các cơ sở sẽ được máy chủ chuyển đến máy trạm tại các cơ sở để quản lý thông tin
+
+Các thông tin bao gồm:
+
+Mã chuyến tàu
+
+Thông tin tàu hỏa
+
+Tuyến đường sắt đi qua
+
+Thông tin của các ga tàu đến và đi
+
+Thời gian xuất phát dự kiến, thời gian đến nơi dự kiến
+
+…
+
+Chức năng báo cáo thống kê
+
+Giúp người quản lý biết được những thông tin cần thiết của công việc quản lý bán vé máy bay như:
+
+Báo cáo doanh số trong tháng
+
+Báo cáo số vé bán ra
+
+Báo cáo tình trạng số lượng tàu hỏa
+
+Báo cáo về nhân viên
+
+Báo cáo tình trạng các chuyến tàu
+
+…
+
+Chức năng phân quyền
+
+Giúp người quản lý thực hiện phân quyền cho các tài khoản
+
+Ngoài ra còn có các chức năng khác như: chức năng tìm kiếm, chức năng in các hóa đơn, danh sách, báo cáo, đổi mật khẩu,… để quản lý việc bán vé được tốt hơn.
+
+Phân tích cơ sở dữ liệu
+
+Lược đồ thực thể E – R
+
+
+
+Lược đồ quan hệ
+
+
+
+Bảng tần suất truy cập các vị trí
+
+W: tạo mới và ghi
+
+E: Sửa
+
+D: Xóa
+
+R: Đọc 
+
+H: Tần suất cao
+
+L: Tần suất thấp
+
+
+
+Thực thể
+
+Trụ sở chính
+
+Các chi nhánh
+
+Branch
+
+H.R, L.WED
+
+H.R
+
+Employee
+
+H.R, L.WED
+
+H.R, L.WED
+
+Customer
+
+L.RWED
+
+H.RWED
+
+Ticket
+
+L.RWED
+
+H.RWED
+
+Train ride
+
+H.RWED
+
+H.R
+
+Station
+
+H.R, L.WED
+
+H.R
+
+Train
+
+H.R, L.WED
+
+H.R
+
+
+
+Phân tích:
+
+Branch – Chi nhánh
+
+Trụ sở chính: việc đọc thực hiện ở tần suất cao, việc thực hiện tạo mới và ghi, sửa, xóa thực hiện ở tần suất thấp vì không thể thường xuyên thay đổi và tạo mới chi nhánh.
+
+Các chi nhánh: không có quyền tạo mới và ghi, sửa, xóa; chỉ có quyền đọc ở tần suất cao vì thông tin ở chi nhánh chỉ trụ sở chính mới có thể chỉnh sửa
+
+Employee – Nhân viên:
+
+Trụ sở chính: việc đọc thực hiện ở tần suất cao, việc thực hiện tạo mới và ghi, sửa, xóa thực hiện ở tần suất thấp vì thông tin nhân viên không thay đổi thường xuyên
+
+Các chi nhánh: việc đọc thực hiện ở tần suất cao, việc thực hiện tạo mới và ghi, sửa, xóa thực hiện ở tần suất thấp vì thông tin nhân viên không thay đổi thường xuyên
+
+Customer – Hành khách:
+
+Trụ sở chính: việc tạo mới và ghi, sửa, xóa, đọc được thực hiện ở tần suất thấp do mỗi ngày có rất nhiều hành khách mua vé hoặc hủy vé, trụ sở chính không có khả năng thường xuyên thực hiện tạo mới và ghi, sửa, xóa, đọc tất cả hành khách
+
+Chi nhánh: việc tạo mới và ghi, sửa, xóa, đọc được thực hiện ở tần suất cao do mỗi ngày có rất nhiều hành khách mua vé hoặc hủy vé
+
+Ticket – Vé:
+
+Trụ sở chính: việc tạo mới và ghi, sửa, xóa, đọc được thực hiện ở tần suất thấp do số lượng vé mỗi ngày là rất nhiều, trụ sở chính không có khả năng thường xuyên thực hiện tạo mới và ghi, sửa, xóa, đọc tất cả các vé
+
+Chi nhánh: việc tạo mới và ghi, sửa, xóa, đọc được thực hiện ở tần suất cao do mỗi ngày có rất nhiều hành khách mua vé hoặc hủy vé
+
+Train ride – Chuyến tàu:
+
+Trụ sở chính: việc đọc, tạo mới và ghi, sửa, xóa, được thực hiện ở tần suất cao do thông tin chuyến tàu được thêm mới và thay đổi liên tục
+
+Chi nhánh: không có quyền tạo mới và ghi, sửa, xóa; chỉ có quyền đọc ở tần suất cao
+
+Station – Ga tàu:
+
+Trụ sở chính: việc đọc thực hiện ở tần suất cao, việc thực hiện tạo mới và ghi, sửa, xóa thực hiện ở tần suất thấp vì không thể thường xuyên thay đổi và tạo mới ga tàu.
+
+Các chi nhánh: không có quyền tạo mới và ghi, sửa, xóa; chỉ có quyền đọc ở tần suất cao
+
+Train – Tàu hỏa:
+
+Trụ sở chính: việc đọc thực hiện ở tần suất cao, việc thực hiện tạo mới và ghi, sửa, xóa thực hiện ở tần suất thấp vì không thể thường xuyên thay đổi và tạo mới tàu hỏa.
+
+Các chi nhánh: không có quyền tạo mới và ghi, sửa, xóa; chỉ có quyền đọc ở tần suất cao
+
+
+
+
+PHẦN 3: THIẾT KẾ
+
+Thiết kế hệ thống mạng tổng quan
+
+Trụ sở chính: Đặt máy Server chính Hà Nội thực hiện các chức năng và lưu CSDL của toàn hệ thống
+
+Chi nhánh Đà Nẵng: Đặt Server trạm 1 và các client tương ứng thực hiện chức năng và lưu toàn bộ CSDL thuộc Đà Nẵng
+
+Chi nhánh Hồ Chí Minh: Đặt Server trạm 2 và các client tương ứng thực hiện chức năng và lưu toàn bộ CSDL thuộc Hồ Chí Minh
+
+
+
+
+
+Thiết kế cơ sở dữ liệu của hệ thống
+
+Cấu trúc các bảng dữ liệu của hệ thống
+
+Branch 
+
+STT
+
+Tên thuộc tính
+
+Kiểu
+
+Ràng buộc
+
+Khóa
+
+Mô tả
+
+1
+
+ID
+
+varchar(50)
+
+Not null
+
+PK
+
+Mã chi nhánh
+
+2
+
+Address
+
+nvarchar(max)
+
+Not null
+
+
+
+Địa chỉ
+
+3
+
+Phone_number
+
+varchar(100)
+
+Not null
+
+
+
+Số điện thoại
+
+
+
+Employee
+
+STT
+
+Tên thuộc tính
+
+Kiểu
+
+Ràng buộc
+
+Khóa
+
+Mô tả
+
+1
+
+ID
+
+varchar(50)
+
+Not null
+
+PK
+
+Mã nhân viên
+
+2
+
+ID_Branches
+
+varchar(50)
+
+Not null
+
+FK
+
+Mã chi nhánh
+
+3
+
+Salary
+
+float
+
+Not null
+
+
+
+Lương
+
+4
+
+Fullname
+
+nvarchar(250)
+
+Not null
+
+
+
+Họ và tên
+
+5
+
+Role
+
+nvarchar(100)
+
+Not null
+
+
+
+Chức vụ
+
+6
+
+Phone_number
+
+nvarchar(50)
+
+Not null
+
+
+
+Số điện thoại
+
+
+
+Customer
+
+STT
+
+Tên thuộc tính
+
+Kiểu
+
+Ràng buộc
+
+Khóa
+
+Mô tả
+
+1
+
+ID
+
+varchar(50)
+
+Not null
+
+PK
+
+Mã khách hàng
+
+2
+
+Name
+
+nvarchar(250)
+
+Not null
+
+
+
+Họ và tên
+
+3
+
+Username 
+
+varchar(100)
+
+Not null
+
+
+
+Tên người dùng
+
+4
+
+Password
+
+varchar(100)
+
+Not null
+
+
+
+Mật khẩu
+
+5
+
+Phone_number
+
+varchar(100)
+
+Not null
+
+
+
+Số điện thoại
+
+6
+
+Address
+
+nvarchar(max)
+
+Not null
+
+
+
+Địa chỉ
+
+
+
+Ticket
+
+STT
+
+Tên thuộc tính
+
+Kiểu
+
+Ràng buộc
+
+Khóa
+
+Mô tả
+
+1
+
+ID
+
+varchar(50)
+
+Not null
+
+PK
+
+Mã vé
+
+2
+
+ID_Customer
+
+varchar(50)
+
+Not null
+
+FK
+
+Mã khách hàng
+
+3
+
+ID_employee
+
+varchar(50)
+
+Not null
+
+FK
+
+Mã nhân viên
+
+4
+
+ID_Train_ride
+
+varchar(50)
+
+Not null
+
+FK
+
+Mã chuyến tàu
+
+5
+
+Ticket_Price
+
+float
+
+Not null
+
+
+
+Giá vé
+
+6
+
+Discount
+
+float
+
+Not null
+
+
+
+Ưu đãi
+
+7
+
+Id_Seat
+
+varchar(50)
+
+Not null
+
+
+
+Loại ghế
+
+
+
+Train ride
+
+STT
+
+Tên thuộc tính
+
+Kiểu
+
+Ràng buộc
+
+Khóa
+
+Mô tả
+
+1
+
+ID
+
+varchar(50)
+
+Not null
+
+PK
+
+Mã chuyến tàu
+
+2
+
+ID_Train
+
+varchar(50)
+
+Not null
+
+FK
+
+Mã tàu hỏa
+
+3
+
+Departure_time
+
+datetime
+
+Not null
+
+
+
+Thời gian 
+khởi hành
+
+4
+
+Departure_Station
+
+varchar(100)
+
+Not null
+
+FK
+
+Trạm khởi hành
+
+5
+
+Destination
+
+varchar(100)
+
+Not null
+
+FK
+
+Điểm đến
+
+
+
+
+
+Station
+
+STT
+
+Tên thuộc tính
+
+Kiểu
+
+Ràng buộc
+
+Khóa
+
+Mô tả
+
+1
+
+Name
+
+varchar(50)
+
+Not null
+
+PK
+
+Tên ga tàu
+
+2
+
+Address
+
+nvarchar(max)
+
+Not null
+
+
+
+Địa chỉ
+
+3
+
+Train_station_class
+
+nvarchar(100)
+
+Not null
+
+
+
+Hạng ga tàu
+
+
+
+Train
+
+STT
+
+Tên thuộc tính
+
+Kiểu
+
+Ràng buộc
+
+Khóa
+
+Mô tả
+
+1
+
+ID
+
+varchar(50)
+
+Not null
+
+PK
+
+Mã tàu hỏa
+
+2
+
+Manufacturing_Board
+
+nvarchar(max)
+
+Not null
+
+
+
+Nơi sản xuất
+
+3
+
+Class_1_seats
+
+int
+
+Not null
+
+
+
+Số chỗ loại 1
+
+4
+
+Class_2_seats
+
+int
+
+Not null
+
+
+
+Số chỗ loại 2
+
+
+
+Seat	
+
+STT
+
+Tên thuộc tính
+
+Kiểu
+
+Ràng buộc
+
+Khóa
+
+Mô tả
+
+1
+
+ID
+
+varchar(50)
+
+Not null 
+
+PK
+
+Mã chỗ ngồi
+
+2
+
+Seat_Number
+
+varchar(50)
+
+Not null
+
+
+
+Mã số của ghế
+
+3
+
+Seat_Class
+
+varchar(50)
+
+Not null
+
+
+
+Hạng ghế
+
+4
+
+ID_Train
+
+varchar(50)
+
+Not null
+
+FK
+
+Mã tàu
+
+
+
+
+
+
+Quan hệ giữa các bảng
+
+
+
+
+
+
+
+Thiết kế cơ sở dữ liệu phân tán
+
+Lược đồ phục vụ cho phân mảnh ngang dẫn xuất
+
+
+
+
+
+Thiết kế phân mảnh ngang, nhân bản
+
+Vị trí 1: Server chi nhánh, nơi đặt máy trạm tại cơ sở Đà Nẵng
+
+Vị trí 2: Server chi nhánh, nơi đặt máy trạm tại cơ sở Hồ Chí Minh
+
+Vị trí 3: Server tổng, nơi đặt máy chủ tại trụ sở chính ở Hà Nội
+
+Để phân mảnh, chúng tôi chọn quan hệ tổng thể làm tiêu chí để phân thành 3 mảnh đặt tại 3 vị trí để quản lý các chi nhanh ở các vùng lân cận, sau đó dựa vào các mảnh của chi nhanh sẽ dẫn xuất đến sự phân mảnh của các quan hệ tổng thể còn lại.
+
+Mảnh
+
+Chi Nhánh
+
+Cơ sở dữ liệu
+
+Phân mảnh ngang
+nguyên thủy
+
+Phân mảnh ngang 
+dẫn xuất
+
+1
+
+Đà Nẵng
+
+ Quản lý bán vé Đà Nẵng
+
+ Bảng phân mảnh: Branch
+
+Điều kiện phân tán: BranchDaNang = ID=‘DN’(Branch)
+
+Bảng phân mảnh: Employee
+
+Điều kiện dẫn xuất: Employee1 = Employee  BranchDaNang
+
+
+
+
+
+
+
+
+
+Bảng phân mảnh: Ticket
+
+Điều kiện dẫn xuất: Ticket1 = Employee1  Ticket
+
+2
+
+Hồ Chí Minh
+
+Quản lý bán vé Hồ Chí Minh 
+
+ Bảng phân mảnh: Branch
+
+Điều kiện phân tán: BranchHoChiMinh = ID=‘HCM’(Branch)
+
+Bảng phân mảnh: Employee
+
+Điều kiện dẫn xuất: Employee2 = Employee  BranchHoChiMinh
+
+
+
+
+
+
+
+
+
+Bảng phân mảnh: Ticket
+
+Điều kiện dẫn xuất: Ticket2 = Employee2  Ticket
+
+
+
+Thiết kế định vị và vẽ sơ đồ định vị
+
+Thiết kế sơ đồ định vị
+
+Phân mảnh ngang nguyên thủy và phân mảnh ngang dẫn xuất để chia quan hệ tổng thể thành 3 mảnh đặt tại 3 chi nhánh khác nhau
+
+Server chính đặt tại Hà Nội chứa thông tin của toàn hệ thống: Các Branch (Chi nhánh), các Employee (Nhân viên), các Customer (Khách hàng), các Ticket (Vé), các Train ride (Chuyến tàu), các Station (Ga tàu), các Train (tàu hỏa), các Seat (Chỗ ngồi) của các chi nhánh và của trụ sở
+
+Chi nhánh số 1: Máy trạm 1 đặt tại Đà Nẵng chứa các thông tin của chi nhánh đó: Các Branch (Chi nhánh), các Employee (Nhân viên), các Customer (Khách hàng), các Ticket (Vé), các Train ride (Chuyến tàu), các Station (Ga tàu), các Train (tàu hỏa), các Seat (Chỗ ngồi)
+
+Chi nhánh số 2: Máy trạm 2 đặt tại Hồ Chí Minh chứa các thông tin của chi nhánh đó: Các Branch (Chi nhánh), các Employee (Nhân viên), các Customer (Khách hàng), các Ticket (Vé), các Train ride (Chuyến tàu), các Station (Ga tàu), các Train (tàu hỏa), các Seat (Chỗ ngồi)
+
+Sơ đồ định vị
+
+
+
+
+
+Lược đồ ánh xạ
+
+	
+
+
+
+Thiết kế lược đồ nhân bản, đồng bộ hóa
+
+
+
+
+
+
+
+Thông tin tại máy chủ: Các Station, Train ride, Train, Seat, Customer tại máy chủ sẽ được nhân bản tại các máy trạm (đồng bộ hóa về máy trạm mỗi khi có sự thay đổi từ máy chủ). Nhân bản có thể được thực thi giữa những CSDL trên cùng một server hay những server khác nhau được kết nối bởi mạng LANs, WANs hay Internet
+
+Nếu tại máy chủ có sự cập nhật thông tin Branch, Employee, Ticket thì sẽ được đồng bộ hóa về chi nhánh
+
+Thông tin tại máy trạm: Branch, Employee, Ticket được cập nhật thì sẽ được đồng bộ hóa về máy chủ mỗi khi có thông tin
+
+
+
+Thiết kế vật lý các trạm
+
+
+
+STT
+
+Tên bảng
+
+Ý nghĩa
+
+1
+
+dbo.Branch
+
+Chi nhánh, chứa thông tin luên quan đến chi nhánh phục vụ cho công tác quản lý chi nhánh
+
+2
+
+dbo.Employee
+
+Nhân viên, chứa thông tin luên quan đến nhân viên phục vụ cho công tác quản lý nhân viên
+
+3
+
+dbo.Ticket
+
+Vé, chứa thông tin luên quan đến vé phục vụ cho công tác quản lý vé
+
+4
+
+dbo.Customer
+
+Khách hàng, chứa thông tin luên quan đến khách hang phục vụ cho công tác quản lý khách hàng
+
+5
+
+dbo.Train
+
+Tàu hỏa, chứa thông tin luên quan đến tàu hỏa phục vụ cho công tác quản lý tàu hỏa
+
+6
+
+dbo.Station
+
+Ga tàu, chứa thông tin luên quan đến ga tàu phục vụ cho công tác quản lý ga tàu
+
+7
+
+dbo.Train_ride
+
+Chuyến tàu, chứa thông tin luên quan đến chuyến tàu phục vụ cho công tác quản lý chuyến tàu
+
+
+
+VI. Phân tích các tình huống nghiệp vụ phân tán
+
+1. Tra cứu chuyến tàu và ghế trống trên toàn hệ thống
+
+Mô tả tình huống:
+Một nhân viên tại chi nhánh Đà Nẵng cần tra cứu các ghế còn trống của một chuyến tàu để tư vấn và bán vé cho hành khách.
+
+Quy trình xử lý:
+
+Bước 1: Máy trạm tại Đà Nẵng gửi yêu cầu tra cứu lên Server Đà Nẵng.
+
+Bước 2: Server Đà Nẵng truy vấn bảng TrainRide để tìm chuyến tàu có ga đi, ga đến và thời gian khởi hành phù hợp.
+
+Bước 3: Khi nhân viên chọn một chuyến tàu, hệ thống xác định tàu được sử dụng thông qua khóa ngoại idTrain trong bảng TrainRide.
+
+Bước 4: Hệ thống truy vấn bảng Seat để lấy danh sách các ghế thuộc tàu đó.
+
+Bước 5: Hệ thống truy vấn bảng Ticket để lấy danh sách các ghế đã được bán của chuyến tàu.
+
+Bước 6: Danh sách ghế trống được xác định bằng cách lấy danh sách ghế của tàu trừ đi danh sách ghế đã có vé.
+
+Bước 7: Kết quả được trả về máy trạm Đà Nẵng để nhân viên lựa chọn ghế cho hành khách.
+
+Dữ liệu được truy xuất:
+
+Bảng TrainRide, Train, Seat là dữ liệu dùng chung và được nhân bản từ Server Hà Nội về các chi nhánh.
+
+Bảng Ticket chứa dữ liệu vé đã bán tại các chi nhánh và được đồng bộ giữa các site.
+
+Khi cần dữ liệu mới nhất, hệ thống có thể truy vấn dữ liệu từ các site thông qua Linked Server.
+
+Phân tích chi phí truyền dữ liệu:
+
+Để giảm lượng dữ liệu truyền qua mạng, hệ thống chỉ lấy các trường cần thiết như mã ghế, số ghế và hạng ghế. Việc nhân bản các bảng dùng chung như TrainRide, Train và Seat về các chi nhánh giúp giảm số lần truy vấn đến Server Hà Nội.
+
+
+
+
+
+
+PHẦN 4: CÀI ĐẶT
+
+Cài đặt SQL Server 2025
+
+Cài đặt SQL Server 2025 bản Developer
+
+Truy cập vào đường link để tải SQL Server 2025 (bản developer)
+
+https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+
+
+
+
+
+Mở tệp exe vừa tải
+
+
+
+
+
+Chọn bản Custom:
+
+
+
+Chọn Install:
+
+
+
+
+
+
+
+Sau khi hoàn tất, vào địa chỉ đã cài đặt, chọn Developer_ENU, sau đó chọn SETUP
+
+
+
+
+
+Sau khi chọn SETUP, ta thu được cửa sổ
+
+
+
+
+
+Chọn Installation 🡪 New SQL Server standalone installation or add features to an existing installation 
+
+
+
+
+
+Ở Product key, chọn evaluation, sau đó chọn Next
+
+
+
+
+
+Sau khi hoàn thành, chọn Next:
+
+
+
+
+
+Tại Feature Selection, lựa chọn các Features phù hợp, sau đó chọn Next
+
+
+
+Tại Instance Configuration, đặt tên Named Instance phù hợp, sau đó chọn Next
+
+
+
+
+
+
+
+Tại Database Engine Configuration 🡪 chọn tab Server Configuration
+
+Trong Authentication Mode 🡪 chọn Mixed Mode, sau đó đặt mật khẩu phù hợp (Trong bài báo cáo này đặt mật khẩu là 12345)
+
+Chọn Add Curent User, sau đó chọn Next
+
+
+
+
+
+Tiếp tục chọn Next tại các phần tiếp theo
+
+
+
+Tại Ready to install, chọn install
+
+
+
+
+
+
+
+Setup hoàn tất
+
+
+
+
+
+Cài đặt SQL Server Management Studio Tools (SSMS)
+
+Giới thiệu: SSMS là một ứng dụng phần mềm thiết kế bởi Micresoft, ra mắt lần đầu năm 2005. Ứng dụng này cho phép lập trình viên cấu hình, quản lý và quản trị bộ máy cơ sở dữ liệu (database engine) SQL Server. SSMS phổ biến và đc sử dụng rộng rãi trong cộng đồng lập trình viên và quản trị viên cơ sở dữ liệu
+
+Tải SSMS tại:
+
+https://learn.microsoft.com/en-us/ssms/install/install
+
+
+
+
+
+Mở file vừa tải bằng Run as administrator
+
+
+
+
+
+Chọn Install
+
+
+
+
+
+
+
+
+Hoàn thành cài đặt SSMS
+
+
+
+
+
+Cài đặt tường lửa (firewall) để mở cổng cho SQL
+
+Tường lửa (firewall) là một hệ thống bảo mật mạng giám sát và kiểm soát lưu lượng mạng đến và đi dựa trên các quy tắc bảo mật được xác định trước. Một tường lửa thường thiết lập một rào cản giữa một mạng nội bộ đáng tin cậy và mạng bên ngoài không tin cậy, chẳng hạn như Internet.
+
+Tắt tường lửa
+
+Tìm kiếm firewall trên thanh tìm kiếm
+
+
+
+
+
+Chọn Turn Windows Defender FireWall on or off, sau đó turn off các firewall, sau đó bấm OK
+
+
+
+
+
+
+
+Mở cổng 1433
+
+Mục đích: Theo mặc định, SQL Server sử dụng cổng TCP 1433 để giao tiếp với các ứng dụng. Nếu ta đang chạy một ứng dụng yêu cầu kết nối với SQL Server, ta phải bật cổng 1433 cho SQL Server để kết nối. 
+
+Tìm kiếm SQL Server 2025 Configuration Manager trên thanh công cụ 
+
+
+
+Chọn SQL Server Network Configuration 🡪 Chọn server cài đặt port 🡪 kích chuột phải vào TCP/IP 🡪 chọn Properties
+
+
+
+
+
+Trong IP address, tại IPAll, setup TCP Port là 1433 🡪 Apply 🡪 OK
+
+
+
+
+
+Thêm New Rules tcp_1433
+
+Tại firewall, chọn Advanced settings 🡪 Inbound Rules
+
+
+
+
+
+Chọn New Rule 🡪 tại Rule Type, chọn Port 🡪 Next
+
+
+
+
+
+Tại Specific local ports, nhập vào 1433. Các bước sau đó ta chọn Next
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tại Name, đặt tên cho rule 🡪 Chọn Finish
+
+
+
+
+
+Thêm new Rule sqlserver
+
+Chọn New Rule 🡪 tại Rule type, chọn Program 🡪 Next
+
+
+
+
+
+Chọn file sqlserv.exe từ đường dẫn: 
+
+%ProgramFiles%\Microsoft SQL Server\MSSQL17.CSDLPTHCM\MSSQL\Binn\sqlservr.exe 
+
+Sau đó chọn Next
+
+
+
+Tại Name, đặt tên cho rule, sau đó chọn Finish
+
+
+
+
+
+Chuẩn bị Folder REPLDATA
+
+Mục đích: chứa các dữ liệu trao đổi trong quá trình update dữ liệu từ các phân mảnh về cơ sở dữ liệu gốc, và từ cơ sở dữ liệu gốc đến các phân mảnh
+
+Tạo Folder REPLDATA tại ổ C
+
+
+
+Click chuột trái 🡪 chọn Properties 🡪 Sharing 
+
+
+
+
+
+Chọn Share 🡪 Chọn Everyone 🡪 Add
+
+
+
+Cấp quyền Read/write
+
+
+
+Chọn Share
+
+
+
+
+
+
+
+Kết nối máy trạm và các chi nhánh bằng phần mềm radmin VPN
+
+Tải phần mềm radmin VPN
+
+Giới thiệu: phần mềm Radmin VPN là phần mềm dùng để tạo mạng riêng ảo (VPN) cho phép thiết lập kết nối bảo mật giữa các máy tính qua internet như thể các máy tính này kết nối với nhau trên mạng LAN
+
+Cài đặt phần mềm radmin VPN theo đường link: https://www.radmin-vpn.com/
+
+
+
+Khởi chạy file exe đã tải về
+
+
+
+Chọn Install để cài đặt Radmin VPN
+
+
+
+
+
+
+
+Màn hình sẽ hiện lên giao diện của Radmin VPN
+
+
+
+Sau đó nhấn create
+
+
+
+
+
+Sau đó mời các thành viên vào nhóm network vừa tạo
+
+
+
+Bật TCP IP và thêm IP các máy trạm
+
+Mở SQL Server Configuration Manager để cấu hình IP cho từng máy
+
+TCP/IP: Enable
+
+Named Pipes: Disable
+
+
+
+Mở TCP/IP 🡪 IP address
+
+
+
+Cài đặt các IP như sau:
+
+Active: Yes
+
+Enable: Yes
+
+Tất cả các TCP port: 1433
+
+IP1: 26.64.196.112 🡪 IP máy chủ
+
+Còn lại là IP máy trạm
+
+Restart lại Server
+
+ 
+
+Tạo Database QLBV
+
+Tạo database QLBV và các bảng
+
+
+
+
+
+
+
+
+
+Bảng Branch
+
+
+
+Bảng Customer
+
+
+
+
+
+Bảng Employee
+
+
+
+Bảng Train
+
+
+
+
+
+Bảng Station
+
+
+
+
+
+Bảng Ticket
+
+
+
+
+
+Bảng TrainRide
+
+
+
+Configure distribution
+
+Distribution: Là một server mà chứa CSDL phân tán (distribution database) và lưu trữ metadata, history data và transaction. SQL Server sử dụng CSDL phân tán để lưu và chuyển (store_and_forward) dữ liệu nhân bản từ Publisher đến các Subscriber. Có 2 loại Distributor: Local Distributor và Remote Distributor.
+
+Đăng nhập và bật SQL Server Agent
+
+Mở SQL Server và thực hiện đăng nhập
+
+
+
+
+
+Sau khi đăng nhập, chọn mục SQL Server Agent 🡪 click chuột phải 🡪 chọn Start
+
+
+
+Nhấn “Yes” để bật SQL Server Agent
+
+
+
+Configure distribution
+
+Click chuột phải vào Replication, chọn Configure Distribution 
+
+
+
+Thực hiện các theo tác next đến Snapshot Folder
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tạo Publication Database 
+
+Replication – nhân bản dữ liệu: Replication là công nghệ sao chép, phân phối dữ liệu và là một trong những giải pháp “khôi phục dữ liệu sau thảm họa” có sẵn trong SSMS rất hữu ích để duy trì bản sao thứ hai hoặc bản sao dự phòng của các đối tượng (Table, View, Stored Procedure) và CSDL.
+
+Replication trong Microsoft SQL Server có 4 loại:
+
+Snapshot Replication
+
+Transactional Replication
+
+Peer-to-Peer replication
+
+Merge Replication 
+
+Tạo Transaction Replication
+
+Giới thiệu: Nhân bản giao dịch một chiều là một kỹ thuật được sử dụng để sao chép tự động liên tục hoặc định kỳ các dữ liệu giao dịch (Transaction Data) một chiều từ Publisher đến Subscriber
+
+Trong Replication 🡪 chuột phải vào Local Publications 🡪 chọn New Publication
+
+
+
+Chọn database cần replication, sau đó bấm next
+
+
+
+Chọn Transaction publication 🡪 next
+
+
+
+Chọn Table 🡪 next
+
+
+
+
+
+
+
+
+
+
+
+Chọn Security Setting
+
+
+
+
+
+Chọn Run under the SQL Server Agent Service account Và điền thông tin Login và Password 🡪 OK
+
+
+
+Sau đó chọn next
+
+
+
+
+
+
+
+Đặt Publication name 🡪 chọn Finish
+
+
+
+
+
+
+
+Click chuột phải vào publication vừa tạo, chọn New Subcriptions
+
+
+
+
+
+
+
+
+
+
+
+Tại Add Subcriber 🡪 chọn Add SQL Server Subcriber…
+
+
+
+Chọn Server cần phân tán 🡪 connect
+
+
+
+
+
+Tạo Database chứa thông tin nhân bản
+
+
+
+
+
+Sau đó chọn next
+
+
+
+
+
+Điền các thông tin cần thiết 🡪 OK
+
+
+
+
+
+Sau đó chọn next
+
+
+
+
+
+Chọn run continuously 🡪 next 🡪 next
+
+
+
+
+
+
+
+Chọn Finish
+
+
+
+
+
+
+
+
+
+
+
+Tạo Merge replication
+
+Merge replication cho phép nhiều server làm việc độc lập (online hay offline) sau đó hợp nhất dữ liệu đã thay đổi lại dựa vào độ ưu tiên, thời điểm chỉnh sửa hoặc do người dùng tự quy định. Subscriber sẽ đồng bộ với publisher khi được kết nối vào mạng và sẽ chuyển giao tất cả các row đã thực hiện thay đổi giữa publisher và subscriber khi được kết nối vào mạng và sẽ chuyển giao tất cả các row đã thực hiện thay đổi giữa những publisher và subscriber kể từ lần đồng bộ cuối cùng
+
+Merge replication thường được dùng trong các trường hợp sau:
+
+Nhiều subscribe cập nhật cùng một dữ liệu nhiều lần và muốn phân phối những thay đổi đó tới publisher và các subscriber khác
+
+Subscriber có nhu cầu nhận dữ liệu, thay đổi dữ liệu offline, sau đó đồng bộ hóa những thay đổi tới publisher và các subscriber khác.
+
+Mỗi subscriber yêu cầu một phân vùng dữ liệu khác nhau
+
+Trong Replication 🡪 chuột phải vào Local Publications 🡪 chọn New Publication
+
+
+
+
+
+Chọn Merge Publication 🡪 next
+
+
+
+
+
+Chọn next
+
+
+
+
+
+
+
+
+
+
+
+Thực hiện Add filter để phân tán các dữ liệu 🡪 next
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Click chuột phải vào publication vừa tạo, chọn New Subcriptions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tạo Link Server
+
+Mục tiêu: thực hiện kết nối 2 máy tính với nhau để truyền dữ liệu qua lại giữa các máy tính với nhau không thông qua máy chủ
+
+Tạo new Login trong phần kết nối của CSDL để tạo một kết nối riêng
+
+
+
+Đặt tên kết nối là HCM, password là 12345
+
+
+
+Chọn User Mapping
+
+Chọn CSDL muốn chia sẻ, trong trường hợp này, chọn QLBVHCM. Tiếp theo, chọn 
+
+Tiếp theo, chọn db_owner để cập nhật dữ liệu sang máy trạm QLBVHCM với tất cả dữ liệu có khả năng thao tác thêm, sửa, xóa
+
+
+
+
+
+
+
+Chọn new Linked server ở Linked server
+
+
+
+
+
+Đặt tên cho linkserver, tại Product name và Data source là nơi mà máy 1 muốn lấy dữ liệu từ máy 2
+
+
+
+
+
+
+Tại security, chọn Be made using this security context.
+
+Login: HCM
+
+Password: 12345
+
+
+
+
+
+Tại server options, các mục sau chọn true 🡪 OK
+
+
+
+
+
+
+PHẦN 5: TRIGGER
+
+Trigger cập nhật, thêm mới nhân viên tại máy trạm
+
+USE [QLBV]
+
+GO
+
+/****** Object:  Trigger [dbo].[update_Employee]    Script Date: 4/15/2023 4:12:22 PM ******/
+
+SET ANSI_NULLS ON
+
+GO
+
+SET QUOTED_IDENTIFIER ON
+
+GO
+
+ALTER trigger [dbo].[update_Employee] on [dbo].[Employee]
+
+after insert, update
+
+as
+
+declare @id varchar(50),@idBranch varchar(50)
+
+set @id = (select id from inserted)
+
+set @idBranch = (select idBranch from inserted)
+
+if(@id like 'E%' and @id like CONCAT('%',@idBranch,'%'))
+
+begin
+
+	print(N'Cập nhật thành công')
+
+end
+
+else
+
+begin
+
+	raiserror(N'Nhân viên Không hợp lệ',16,1)
+
+	rollback tran
+
+end
+
+Trigger cập nhật, thêm mới vé tại máy trạm
+
+USE [QLBV]
+
+GO
+
+SET ANSI_NULLS ON
+
+GO
+
+SET QUOTED_IDENTIFIER ON
+
+GO
+
+CREATE OR ALTER TRIGGER [dbo].[update_Ticket] 
+
+ON [dbo].[Ticket]
+
+AFTER INSERT, UPDATE
+
+AS
+
+BEGIN
+
+DECLARE @id varchar(50), @idEmployee varchar(50)
+
+SET @id = (SELECT id FROM inserted)
+
+SET @idEmployee = (SELECT IdEmployee FROM inserted)
+
+IF(@id LIKE 'TK%' AND @id LIKE CONCAT('%', SUBSTRING(@idEmployee, 2, 2), '%'))
+
+BEGIN
+
+PRINT(N'Cập nhật thành công')
+
+END
+
+ELSE
+
+BEGIN
+
+RAISERROR(N'Vé Không hợp lệ', 16, 1)
+
+ROLLBACK TRAN
+
+END
+
+END
+
+GO
+
+Trigger kiểm tra và cập nhật ga tàu
+
+USE [QLBV]
+
+GO
+
+/****** Object:  Trigger [dbo].[check_update_Station]    Script Date: 4/15/2023 4:14:15 PM ******/
+
+SET ANSI_NULLS ON
+
+GO
+
+SET QUOTED_IDENTIFIER ON
+
+GO
+
+ALTER trigger [dbo].[check_update_Station] on [dbo].[Station]
+
+after update
+
+as 
+
+declare @count int, @name varchar(50)
+
+set @name = (select [Name] from inserted)
+
+set @count = (select count(*) from TrainRide where Destination = @name or DepartureStation = @name)
+
+if(@count = 0)
+
+begin
+
+	print(N'Cập nhật thành công')
+
+end
+
+else
+
+begin
+
+	rollback tran
+
+	raiserror(N'Không thể cập nhật do ga tàu đang trong quá trình sử dụng',16,1)
+
+end
+
+Trigger kiểm tra và xóa ga tàu
+
+USE [QLBV]
+
+GO
+
+SET ANSI_NULLS ON
+
+GO
+
+SET QUOTED_IDENTIFIER ON
+
+GO
+
+CREATE OR ALTER TRIGGER [dbo].[check_delete_Station] 
+
+ON [dbo].[Station]
+
+AFTER DELETE
+
+AS
+
+BEGIN
+
+    IF EXISTS (
+
+        SELECT 1
+
+        FROM deleted d
+
+        JOIN TrainRide tr 
+
+            ON tr.Destination = d.Name 
+
+            OR tr.DepartureStation = d.Name
+
+    )
+
+    BEGIN
+
+        ROLLBACK TRAN
+
+        RAISERROR(N'Không thể xóa do ga tàu đang trong quá trình sử dụng', 16, 1)
+
+        RETURN
+
+    END
+
+    ELSE
+
+    BEGIN
+
+        PRINT(N'Cập nhật thành công')
+
+    END
+
+END
+
+GO
+
+Trigger kiểm tra và cập nhật tòa hỏa
+
+USE [QLBV]
+
+GO
+
+SET ANSI_NULLS ON
+
+GO
+
+SET QUOTED_IDENTIFIER ON
+
+GO
+
+CREATE OR ALTER TRIGGER [dbo].[check_update_Train] 
+
+ON [dbo].[Train]
+
+AFTER UPDATE
+
+AS
+
+BEGIN
+
+    IF EXISTS (
+
+        SELECT 1
+
+        FROM inserted i
+
+        JOIN TrainRide tr 
+
+            ON tr.idTrain = i.id
+
+    )
+
+    BEGIN
+
+        ROLLBACK TRAN
+
+        RAISERROR(N'Không thể cập nhật do tàu hỏa đang trong quá trình sử dụng', 16, 1)
+
+        RETURN
+
+    END
+
+    ELSE
+
+    BEGIN
+
+        PRINT(N'Cập nhật thành công')
+
+    END
+
+END
+
+GO
+
+Trigger kiểm tra và xóa tàu hỏa
+
+USE [QLBV]
+
+GO
+
+SET ANSI_NULLS ON
+
+GO
+
+SET QUOTED_IDENTIFIER ON
+
+GO
+
+CREATE OR ALTER TRIGGER [dbo].[check_delete_Train] 
+
+ON [dbo].[Train]
+
+AFTER DELETE
+
+AS
+
+BEGIN
+
+    IF EXISTS (
+
+        SELECT 1
+
+        FROM deleted d
+
+        JOIN TrainRide tr 
+
+            ON tr.idTrain = d.id
+
+    )
+
+    BEGIN
+
+        ROLLBACK TRAN
+
+        RAISERROR(N'Không thể xóa do tàu hỏa đang trong quá trình sử dụng', 16, 1)
+
+        RETURN
+
+    END
+
+    ELSE
+
+    BEGIN
+
+        PRINT(N'Cập nhật thành công')
+
+    END
+
+END
+
+GO
+
+Trigger kiểm tra xem tàu hỏa đã khởi hành chưa
+
+USE [QLBV]
+
+GO
+
+SET ANSI_NULLS ON
+
+GO
+
+SET QUOTED_IDENTIFIER ON
+
+GO
+
+CREATE OR ALTER TRIGGER [dbo].[check_date_TrainRide] 
+
+ON [dbo].[TrainRide]
+
+AFTER INSERT
+
+AS
+
+BEGIN
+
+    IF EXISTS (
+
+        SELECT 1
+
+        FROM inserted
+
+        WHERE DepatureTime <= GETDATE()
+
+    )
+
+    BEGIN
+
+        ROLLBACK TRAN
+
+        RAISERROR(N'Không thể thêm chuyến tàu vì thời gian khởi hành phải lớn hơn thời gian hiện tại', 16, 1)
+
+        RETURN
+
+    END
+
+    ELSE
+
+    BEGIN
+
+        PRINT(N'Thêm chuyến tàu thành công')
+
+    END
+
+END
+
+GO
+
+
+
+
+PHẦN 6: GIAO DIỆN HỆ THỐNG ĐẶT VÉ
+
+
+
+
+
+Phần 7: PHÂN TÍCH CÁC TÌNH HUỐNG NGHIỆP VỤ PHÂN TÁN
+
+Trong hệ thống bán vé tàu hỏa, mỗi chuyến tàu có số lượng vé giới hạn theo từng hạng ghế. Khách hàng không lựa chọn vị trí ghế cụ thể mà chỉ lựa chọn chuyến tàu và hạng ghế phù hợp. Khi bán vé, hệ thống cần xác định số lượng vé còn lại của từng hạng ghế và không được phép bán vượt quá số ghế của tàu.
+
+Dữ liệu bán vé được phát sinh tại nhiều chi nhánh khác nhau. Vì vậy, số lượng vé còn lại không thể chỉ được xác định dựa trên dữ liệu cục bộ của một chi nhánh mà phải được tính toán dựa trên dữ liệu vé đã bán trên toàn hệ thống.
+
+Hệ thống được triển khai tại ba vị trí:
+
+Server tổng đặt tại trụ sở chính Hà Nội.
+
+Server chi nhánh đặt tại Đà Nẵng.
+
+Server chi nhánh đặt tại Thành phố Hồ Chí Minh.
+
+Dữ liệu dùng chung như thông tin tàu hỏa, chuyến tàu và ga tàu được quản lý tại Server Hà Nội và nhân bản về các chi nhánh. Dữ liệu vé được tạo ra tại các chi nhánh trong quá trình bán vé và được đồng bộ về Server Hà Nội. Các server có thể trao đổi dữ liệu thông qua cơ chế đồng bộ hóa và Linked Server.
+
+I. Tình huống 1: Tra cứu số lượng vé còn lại của một chuyến tàu trên toàn hệ thống
+
+1. Mô tả tình huống
+
+Một hành khách đến chi nhánh Đà Nẵng và yêu cầu mua vé tàu. Nhân viên cần tra cứu các chuyến tàu phù hợp với ga khởi hành, ga đến và thời gian xuất phát mà hành khách yêu cầu. Sau khi hành khách lựa chọn một chuyến tàu, nhân viên cần kiểm tra số lượng vé còn lại của từng hạng ghế.
+
+Ví dụ: Hành khách muốn kiểm tra chuyến tàu có mã TR01. Nhân viên cần biết chuyến tàu này còn bao nhiêu vé hạng 1 và bao nhiêu vé hạng 2.
+
+2. Quy trình xử lý
+
+Bước 1: Nhân viên tại chi nhánh Đà Nẵng nhập thông tin ga khởi hành, ga đến và thời gian khởi hành cần tìm kiếm.
+
+Bước 2: Máy trạm tại Đà Nẵng gửi yêu cầu tra cứu đến Server Đà Nẵng.
+
+Bước 3: Server Đà Nẵng truy vấn bảng TrainRide để tìm các chuyến tàu phù hợp.
+
+Bước 4: Khi nhân viên chọn một chuyến tàu, hệ thống xác định tàu hỏa được sử dụng thông qua khóa ngoại idTrain trong bảng TrainRide.
+
+Bước 5: Hệ thống lấy tổng số ghế hạng 1 và tổng số ghế hạng 2 của tàu từ bảng Train.
+
+Bước 6: Hệ thống đếm số vé đã bán của chuyến tàu theo từng hạng ghế trong bảng Ticket trên toàn hệ thống.
+
+Bước 7: Hệ thống tính số lượng vé còn lại theo công thức:
+
+Số vé còn lại = Tổng số ghế của hạng ghế − Số vé đã bán của hạng ghế
+
+Bước 8: Kết quả được trả về máy trạm Đà Nẵng để nhân viên thông báo cho hành khách.
+
+3. Dữ liệu được truy xuất từ các site
+
+Các bảng TrainRide và Train là dữ liệu dùng chung. Dữ liệu này được quản lý tại Server Hà Nội và nhân bản về các chi nhánh. Vì vậy, Server Đà Nẵng có thể sử dụng dữ liệu cục bộ để tìm kiếm chuyến tàu và lấy tổng số ghế của tàu mà không cần gửi toàn bộ yêu cầu lên Server Hà Nội.
+
+Dữ liệu trong bảng Ticket được phát sinh tại các chi nhánh bán vé. Để xác định chính xác số lượng vé còn lại, hệ thống cần tính tổng số vé đã bán của chuyến tàu tại:
+
+Trụ sở chính Hà Nội.
+
+Chi nhánh Đà Nẵng.
+
+Chi nhánh Thành phố Hồ Chí Minh.
+
+Server Hà Nội có thể tổng hợp dữ liệu vé đã được đồng bộ từ các chi nhánh. Trong trường hợp cần kiểm tra dữ liệu mới nhất, hệ thống có thể truy vấn dữ liệu từ các site thông qua Linked Server.
+
+4. Cách tổng hợp dữ liệu
+
+Đối với mỗi hạng ghế, hệ thống đếm số vé đã bán tại từng site, sau đó cộng các kết quả lại.
+
+Ví dụ với chuyến tàu TR01, hạng ghế 1:
+
+Site
+
+Số vé hạng 1 đã bán
+
+Hà Nội
+
+15
+
+Đà Nẵng
+
+10
+
+Thành phố Hồ Chí Minh
+
+8
+
+Tổng cộng
+
+33
+
+Nếu tàu có tổng cộng 50 ghế hạng 1 thì:
+
+Số vé hạng 1 còn lại = 50 − 33 = 17 vé
+
+5. Tác động đến chi phí truyền dữ liệu
+
+Nếu truyền toàn bộ danh sách vé từ các chi nhánh về Server Hà Nội mỗi khi tra cứu, lượng dữ liệu truyền qua mạng sẽ lớn và làm giảm hiệu năng hệ thống
+
+Để giảm chi phí truyền dữ liệu, mỗi site chỉ cần trả về kết quả tổng hợp gồm:
+
+Mã chuyến tàu.
+
+Hạng ghế.
+
+Số lượng vé đã bán.
+
+Như vậy, thay vì truyền nhiều bản ghi vé, hệ thống chỉ truyền một số lượng nhỏ dữ liệu tổng hợp. Các bảng dùng chung như TrainRide và Train đã được nhân bản về các chi nhánh nên có thể được đọc trực tiếp tại site cục bộ.
+
+II. Tình huống 2: Bán vé khi số lượng vé còn lại không đủ hoặc có nhiều chi nhánh cùng bán vé
+
+1. Mô tả tình huống
+
+Một hành khách đến chi nhánh Thành phố Hồ Chí Minh và yêu cầu mua vé hạng 1 của chuyến tàu TR01.
+
+Tại thời điểm tra cứu, hệ thống hiển thị chuyến tàu chỉ còn 1 vé hạng 1. Tuy nhiên, gần như cùng lúc đó, một nhân viên tại chi nhánh Đà Nẵng cũng đang thực hiện bán vé hạng 1 của cùng chuyến tàu.
+
+Nếu cả hai chi nhánh chỉ sử dụng dữ liệu cục bộ và cùng xác nhận bán vé thì tổng số vé đã bán có thể vượt quá tổng số ghế thực tế của tàu. Vì vậy, hệ thống cần kiểm tra lại số lượng vé còn lại trên toàn hệ thống trước khi xác nhận giao dịch.
+
+2. Quy trình xử lý
+
+Bước 1: Nhân viên tại chi nhánh Thành phố Hồ Chí Minh chọn chuyến tàu và hạng ghế theo yêu cầu của hành khách.
+
+Bước 2: Server Thành phố Hồ Chí Minh kiểm tra sơ bộ số lượng vé còn lại dựa trên dữ liệu hiện có.
+
+Bước 3: Trước khi lưu vé, Server Thành phố Hồ Chí Minh gửi yêu cầu xác nhận giao dịch đến Server Hà Nội.
+
+Bước 4: Server Hà Nội kiểm tra tổng số vé đã bán của chuyến tàu và hạng ghế trên toàn hệ thống.
+
+Bước 5: Nếu số vé còn lại vẫn lớn hơn hoặc bằng số vé khách yêu cầu mua, hệ thống cho phép tạo vé mới trong bảng Ticket.
+
+Bước 6: Nếu số vé còn lại không đủ, hệ thống từ chối giao dịch và trả về thông báo: “Số lượng vé còn lại không đủ. Vui lòng lựa chọn hạng ghế hoặc chuyến tàu khác.”
+
+Bước 7: Sau khi bán vé thành công, dữ liệu vé mới được đồng bộ giữa Server Hà Nội và các chi nhánh.
+
+3. Dữ liệu được truy xuất từ các site
+
+Trong tình huống này, hệ thống sử dụng dữ liệu từ:
+
+Server Thành phố Hồ Chí Minh: thông tin nhân viên thực hiện giao dịch, thông tin hành khách và yêu cầu mua vé.
+
+Server Hà Nội: dữ liệu tổng hợp toàn hệ thống và quá trình xác nhận giao dịch cuối cùng.
+
+Server Đà Nẵng và các site khác: dữ liệu vé đã bán cần được đồng bộ hoặc tổng hợp để xác định chính xác số lượng vé còn lại.
+
+4. Cách đảm bảo không bán vượt số lượng vé
+
+Dữ liệu tại chi nhánh có thể được sử dụng để tra cứu nhanh. Tuy nhiên, dữ liệu cục bộ có thể chưa phản ánh ngay giao dịch vừa phát sinh tại một chi nhánh khác.
+
+Vì vậy, trước khi xác nhận bán vé, hệ thống phải thực hiện kiểm tra cuối cùng tại Server Hà Nội. Việc kiểm tra số lượng vé còn lại và lưu vé mới cần được thực hiện trong cùng một giao dịch.
+
+Khi hai chi nhánh cùng gửi yêu cầu bán vé trong lúc chỉ còn 1 vé:
+
+Giao dịch được Server Hà Nội xử lý trước sẽ bán vé thành công.
+
+Sau khi giao dịch thứ nhất hoàn tất, số vé còn lại bằng 0.
+
+Giao dịch đến sau sẽ bị từ chối.
+
+Hệ thống không tạo thêm vé mới và thông báo cho nhân viên lựa chọn hạng ghế hoặc chuyến tàu khác.
+
+Cách xử lý này giúp đảm bảo tổng số vé đã bán không vượt quá số ghế thực tế của chuyến tàu.
+
+5. Tác động đến chi phí truyền dữ liệu
+
+Trong quá trình xác nhận giao dịch, chi nhánh không cần gửi toàn bộ dữ liệu vé lên Server Hà Nội. Hệ thống chỉ cần truyền các thông tin cần thiết:
+
+Mã chuyến tàu.
+
+Hạng ghế.
+
+Số lượng vé cần mua.
+
+Mã khách hàng.
+
+Mã nhân viên bán vé.
+
+Server Hà Nội chỉ trả về kết quả xác nhận thành công hoặc thất bại. Do đó, lượng dữ liệu truyền qua mạng không lớn.
+
+III. Nhận xét
+
+Hai tình huống trên thể hiện đặc trưng của hệ thống cơ sở dữ liệu phân tán trong bài toán bán vé tàu hỏa:
+
+Dữ liệu được lưu trữ và truy xuất tại nhiều site khác nhau.
+
+Dữ liệu dùng chung được nhân bản về các chi nhánh để tăng tốc độ tra cứu.
+
+Dữ liệu vé phát sinh tại các chi nhánh được tổng hợp để phục vụ tra cứu toàn hệ thống.
+
+Chỉ truyền dữ liệu cần thiết hoặc dữ liệu đã tổng hợp để giảm chi phí truyền dữ liệu.
+
+Giao dịch bán vé cần được xác nhận dựa trên dữ liệu toàn hệ thống để tránh bán vượt quá số lượng ghế của tàu.
+
+
+
+
+
+
+
+
+PHẦN 8: XÂY DỰNG CÁC TRUY VẤN PHÂN TÁN
+
+I. Mục tiêu
+
+Hệ thống bán vé tàu được triển khai tại ba vị trí:
+
+Trụ sở chính Hà Nội.
+
+Chi nhánh Đà Nẵng.
+
+Chi nhánh Hồ Chí Minh.
+
+Các bảng dữ liệu dùng chung như Train, TrainRide, Seat, TrainRideSeat và Station được nhân bản tại các site để hỗ trợ tra cứu nhanh. Bảng Ticket chứa dữ liệu giao dịch phát sinh thường xuyên nên được phân mảnh ngang theo thuộc tính idBranch.
+
+Các mảnh dữ liệu vé bao gồm:
+
+Ticket_HN: các vé được xử lý bởi chi nhánh Hà Nội.
+
+Ticket_DN: các vé được xử lý bởi chi nhánh Đà Nẵng.
+
+Ticket_HCM: các vé được xử lý bởi chi nhánh Hồ Chí Minh.
+
+Trong các truy vấn toàn hệ thống, toán tử UNION ALL được sử dụng để hợp nhất các mảnh dữ liệu. Do các mảnh Ticket được phân chia theo idBranch và không trùng lặp nhau, UNION ALL phù hợp hơn UNION vì không phát sinh thêm chi phí kiểm tra và loại bỏ dữ liệu trùng.
+
+Các truy vấn dưới đây được thực hiện từ Server chính Hà Nội. Server Hà Nội truy cập dữ liệu của hai chi nhánh thông qua Linked Server:
+
+LINK_DN: liên kết tới Server Đà Nẵng.
+
+LINK_HCM: liên kết tới Server Hồ Chí Minh.
+
+II. Truy vấn 1: Tra cứu danh sách ghế còn trống của một chuyến tàu
+
+1. Mục đích
+
+Khi khách hàng chọn một chuyến tàu, hệ thống cần hiển thị các ghế vẫn còn khả dụng để khách hàng lựa chọn.
+
+Một ghế được coi là còn trống khi thỏa mãn đồng thời hai điều kiện:
+
+Bản ghi tương ứng trong bảng TrainRideSeat có trạng thái AVAILABLE.
+
+Chưa tồn tại vé của ghế đó trên bất kỳ site nào.
+
+2. Dữ liệu phân tán liên quan
+
+Bảng Seat và TrainRideSeat được đọc từ bản sao tại Server Hà Nội.
+
+Các ghế đã được đặt phải được tổng hợp từ ba mảnh Ticket_HN, Ticket_DN và Ticket_HCM.
+
+3. Câu lệnh SQL
+
+DECLARE @idTrainRide varchar(50) = 'TR01';
+
+ ;WITH BookedSeat AS
+ (
+ 	SELECT idTrainRide, idSeat
+ 	FROM dbo.Ticket
+ 	WHERE idBranch = 'HN'
+   	AND idTrainRide = @idTrainRide
+
+ 	UNION ALL
+
+ 	SELECT idTrainRide, idSeat
+ 	FROM [LINK_DN].[QLBV_DN].[dbo].[Ticket]
+ 	WHERE idBranch = 'DN'
+   	AND idTrainRide = @idTrainRide
+
+ 	UNION ALL
+
+ 	SELECT idTrainRide, idSeat
+ 	FROM [LINK_HCM].[QLBV_HCM].[dbo].[Ticket]
+ 	WHERE idBranch = 'HCM'
+   	AND idTrainRide = @idTrainRide
+ )
+ SELECT
+     trs.idTrainRide,
+ 	s.id AS idSeat,
+ 	s.SeatNumber,
+ 	s.SeatClass
+ FROM dbo.TrainRideSeat AS trs
+ JOIN dbo.Seat AS s
+ 	ON s.id = trs.idSeat
+ LEFT JOIN BookedSeat AS bs
+ 	ON bs.idTrainRide = trs.idTrainRide
+    AND bs.idSeat = trs.idSeat
+ WHERE trs.idTrainRide = @idTrainRide
+   AND trs.status = 'AVAILABLE'
+   AND bs.idSeat IS NULL
+ ORDER BY s.SeatClass, s.SeatNumber;
+
+4. Phân tích
+
+Truy vấn chỉ truyền qua mạng hai thuộc tính cần thiết là idTrainRide và idSeat của những vé thuộc chuyến tàu đang được tra cứu. Sau đó Server Hà Nội thực hiện phép nối ngoài và loại bỏ các ghế đã được đặt.
+
+Cách làm này giảm lượng dữ liệu trung gian so với việc tải toàn bộ bảng Ticket từ các chi nhánh về Server Hà Nội.
+
+III. Truy vấn 2: Tìm các chuyến tàu còn ghế phù hợp với tuyến đường, ngày đi và hạng ghế
+
+1. Mục đích
+
+Khi khách hàng tìm kiếm vé trực tuyến, hệ thống cần trả về danh sách các chuyến tàu phù hợp với:
+
+Ga khởi hành.
+
+Ga đến.
+
+Ngày đi.
+
+Hạng ghế mong muốn.
+
+Kết quả phải hiển thị số ghế còn lại của từng chuyến.
+
+2. Dữ liệu phân tán liên quan
+
+Danh sách chuyến tàu được lấy từ bảng TrainRide.
+
+Danh sách ghế thuộc từng chuyến được lấy từ TrainRideSeat và Seat.
+
+Các ghế đã được đặt phải được tổng hợp từ bảng Ticket tại cả ba site.
+
+3. Câu lệnh SQL
+
+DECLARE @DepartureStation varchar(50) = N'Hà Nội';
+ DECLARE @Destination varchar(50) = N'Đà Nẵng';
+ DECLARE @DepartureDate date = '2026-06-05';
+ DECLARE @SeatClass varchar(50) = N'Hạng 1';
+
+ ;WITH CandidateRide AS
+ (
+ 	SELECT
+     	id,
+         DepartureTime,
+         DepartureStation,
+     	Destination
+ 	FROM dbo.TrainRide
+ 	WHERE DepartureStation = @DepartureStation
+   	AND Destination = @Destination
+   	AND DepartureTime >= @DepartureDate
+   	AND DepartureTime < DATEADD(day, 1, @DepartureDate)
+ ),
+ BookedSeat AS
+ (
+ 	SELECT t.idTrainRide, t.idSeat
+ 	FROM dbo.Ticket AS t
+ 	WHERE t.idBranch = 'HN'
+   	AND t.idTrainRide IN (SELECT id FROM CandidateRide)
+
+ 	UNION ALL
+
+ 	SELECT t.idTrainRide, t.idSeat
+ 	FROM [LINK_DN].[QLBV_DN].[dbo].[Ticket] AS t
+ 	WHERE t.idBranch = 'DN'
+   	AND t.idTrainRide IN (SELECT id FROM CandidateRide)
+
+ 	UNION ALL
+
+ 	SELECT t.idTrainRide, t.idSeat
+ 	FROM [LINK_HCM].[QLBV_HCM].[dbo].[Ticket] AS t
+ 	WHERE t.idBranch = 'HCM'
+   	AND t.idTrainRide IN (SELECT id FROM CandidateRide)
+ )
+ SELECT
+ 	cr.id AS idTrainRide,
+     cr.DepartureStation,
+ 	cr.Destination,
+     cr.DepartureTime,
+ 	s.SeatClass,
+ 	COUNT(*) AS AvailableSeats
+ FROM CandidateRide AS cr
+ JOIN dbo.TrainRideSeat AS trs
+ 	ON trs.idTrainRide = cr.id
+ JOIN dbo.Seat AS s
+ 	ON s.id = trs.idSeat
+ LEFT JOIN BookedSeat AS bs
+ 	ON bs.idTrainRide = trs.idTrainRide
+    AND bs.idSeat = trs.idSeat
+ WHERE s.SeatClass = @SeatClass
+   AND trs.status = 'AVAILABLE'
+   AND bs.idSeat IS NULL
+ GROUP BY
+ 	cr.id,
+     cr.DepartureStation,
+ 	cr.Destination,
+     cr.DepartureTime,
+ 	s.SeatClass
+ HAVING COUNT(*) > 0
+ ORDER BY cr.DepartureTime;
+
+4. Phân tích
+
+Truy vấn trước tiên lọc các chuyến tàu phù hợp tại Server Hà Nội. Sau đó, hệ thống chỉ kiểm tra các vé thuộc những chuyến tàu đã được lọc thay vì truyền toàn bộ dữ liệu vé giữa các site.
+
+Đây là một hình thức tối ưu hóa dữ liệu trung gian: phép chọn được thực hiện trước phép nối và phép tổng hợp.
+
+IV. Truy vấn 3: Thống kê doanh thu theo tháng của từng chi nhánh và toàn hệ thống
+
+1. Mục đích
+
+Trụ sở chính cần theo dõi:
+
+Số vé bán ra tại từng chi nhánh.
+
+Doanh thu của từng chi nhánh.
+
+Tổng số vé và tổng doanh thu của toàn hệ thống.
+
+2. Dữ liệu phân tán liên quan
+
+Bảng Ticket được phân mảnh theo idBranch. Vì vậy, doanh thu của từng chi nhánh được tính ngay tại site tương ứng. Mỗi site chỉ gửi về Server Hà Nội một dòng kết quả tổng hợp.
+
+3. Câu lệnh SQL
+
+DECLARE @FromDate datetime2 = '2026-05-01';
+ DECLARE @ToDate datetime2 = '2026-06-01';
+
+ ;WITH RevenueByBranch AS
+ (
+ 	SELECT
+     	'HN' AS idBranch,
+     	COUNT(*) AS NumberOfTickets,
+     	COALESCE(SUM(ticketPrice), 0) AS Revenue
+ 	FROM dbo.Ticket
+ 	WHERE idBranch = 'HN'
+   	AND bookingTime >= @FromDate
+   	AND bookingTime < @ToDate
+
+ 	UNION ALL
+
+ 	SELECT
+     	'DN' AS idBranch,
+     	COUNT(*) AS NumberOfTickets,
+     	COALESCE(SUM(ticketPrice), 0) AS Revenue
+ 	FROM [LINK_DN].[QLBV_DN].[dbo].[Ticket]
+ 	WHERE idBranch = 'DN'
+   	AND bookingTime >= @FromDate
+   	AND bookingTime < @ToDate
+
+ 	UNION ALL
+
+ 	SELECT
+     	'HCM' AS idBranch,
+     	COUNT(*) AS NumberOfTickets,
+     	COALESCE(SUM(ticketPrice), 0) AS Revenue
+ 	FROM [LINK_HCM].[QLBV_HCM].[dbo].[Ticket]
+ 	WHERE idBranch = 'HCM'
+   	AND bookingTime >= @FromDate
+   	AND bookingTime < @ToDate
+ )
+ SELECT
+ 	idBranch,
+     NumberOfTickets,
+ 	Revenue
+ FROM RevenueByBranch
+
+ UNION ALL
+
+ SELECT
+ 	'TOAN_HE_THONG' AS idBranch,
+ 	SUM(NumberOfTickets) AS NumberOfTickets,
+ 	SUM(Revenue) AS Revenue
+ FROM RevenueByBranch;
+
+4. Phân tích
+
+Nếu tải toàn bộ vé từ các chi nhánh về Server Hà Nội rồi mới tính tổng, lượng dữ liệu truyền qua mạng sẽ tăng theo số vé bán ra.
+
+Trong truy vấn này, mỗi chi nhánh thực hiện COUNT và SUM trước. Sau đó, mỗi site chỉ truyền về một dòng dữ liệu gồm mã chi nhánh, số vé và doanh thu. Vì vậy, chi phí truyền dữ liệu được giảm đáng kể.
+
+V. Truy vấn 4: Tìm các tuyến đường bán chạy nhất toàn hệ thống
+
+1. Mục đích
+
+Truy vấn xác định các tuyến đường có số lượng vé bán ra cao nhất. Kết quả hỗ trợ việc đánh giá nhu cầu đi lại và lập kế hoạch tăng chuyến tàu cho các tuyến phổ biến.
+
+2. Dữ liệu phân tán liên quan
+
+Số lượng vé bán ra được tổng hợp từ các mảnh Ticket tại ba site.
+
+Thông tin ga khởi hành và ga đến được lấy từ bảng TrainRide.
+
+3. Câu lệnh SQL
+
+;WITH TicketCountByRide AS
+ (
+ 	SELECT
+         idTrainRide,
+     	COUNT(*) AS NumberOfTickets
+ 	FROM dbo.Ticket
+ 	WHERE idBranch = 'HN'
+ 	GROUP BY idTrainRide
+
+ 	UNION ALL
+
+ 	SELECT
+         idTrainRide,
+     	COUNT(*) AS NumberOfTickets
+ 	FROM [LINK_DN].[QLBV_DN].[dbo].[Ticket]
+ 	WHERE idBranch = 'DN'
+ 	GROUP BY idTrainRide
+
+ 	UNION ALL
+
+ 	SELECT
+         idTrainRide,
+ 	    COUNT(*) AS NumberOfTickets
+ 	FROM [LINK_HCM].[QLBV_HCM].[dbo].[Ticket]
+ 	WHERE idBranch = 'HCM'
+ 	GROUP BY idTrainRide
+ ),
+ TotalTicketByRide AS
+ (
+ 	SELECT
+         idTrainRide,
+     	SUM(NumberOfTickets) AS NumberOfTickets
+ 	FROM TicketCountByRide
+ 	GROUP BY idTrainRide
+ )
+ SELECT TOP 5
+     tr.DepartureStation,
+ 	tr.Destination,
+ 	SUM(tbr.NumberOfTickets) AS TotalTickets
+ FROM TotalTicketByRide AS tbr
+ JOIN dbo.TrainRide AS tr
+ 	ON tr.id = tbr.idTrainRide
+ GROUP BY
+ 	tr.DepartureStation,
+ 	tr.Destination
+ ORDER BY TotalTickets DESC;
+
+4. Phân tích
+
+Mỗi site chỉ gửi số lượng vé đã bán của từng chuyến tàu thay vì gửi toàn bộ thông tin chi tiết của từng vé. Server Hà Nội tiếp tục nhóm các chuyến tàu theo cặp ga khởi hành và ga đến.
+
+Cách xử lý này giúp giảm dữ liệu trung gian và giảm số lượng bản ghi phải truyền qua mạng.
+
+VI. Truy vấn 5: Tìm các chuyến tàu có vé được bán tại nhiều chi nhánh
+
+1. Mục đích
+
+Một chuyến tàu có thể được khách hàng đặt vé tại nhiều khu vực khác nhau. Truy vấn xác định những chuyến tàu có vé được bán tại từ hai chi nhánh trở lên.
+
+Truy vấn này tương ứng với yêu cầu tìm các đơn hàng hoặc giao dịch có dữ liệu được xử lý tại nhiều kho trong bài toán bán hàng đa kho.
+
+2. Dữ liệu phân tán liên quan
+
+Mỗi site xác định các chuyến tàu đã phát sinh giao dịch tại site của mình.
+
+Server Hà Nội hợp nhất kết quả và đếm số chi nhánh bán vé của từng chuyến.
+
+3. Câu lệnh SQL
+
+;WITH RideBranch AS
+ (
+ 	SELECT DISTINCT
+         idTrainRide,
+     	'HN' AS idBranch
+     FROM dbo.Ticket
+ 	WHERE idBranch = 'HN'
+
+ 	UNION ALL
+
+ 	SELECT DISTINCT
+         idTrainRide,
+     	'DN' AS idBranch
+ 	FROM [LINK_DN].[QLBV_DN].[dbo].[Ticket]
+ 	WHERE idBranch = 'DN'
+
+ 	UNION ALL
+
+ 	SELECT DISTINCT
+         idTrainRide,
+     	'HCM' AS idBranch
+ 	FROM [LINK_HCM].[QLBV_HCM].[dbo].[Ticket]
+ 	WHERE idBranch = 'HCM'
+ ),
+ DistinctRideBranch AS
+ (
+ 	SELECT DISTINCT
+         idTrainRide,
+     	idBranch
+ 	FROM RideBranch
+ )
+ SELECT
+ 	tr.id AS idTrainRide,
+ 	tr.DepartureStation,
+ 	tr.Destination,
+     tr.DepartureTime,
+ 	COUNT(*) AS NumberOfBranches,
+ 	STRING_AGG(CAST(drb.idBranch AS varchar(max)), ', ') AS Branches
+ FROM DistinctRideBranch AS drb
+ JOIN dbo.TrainRide AS tr
+ 	ON tr.id = drb.idTrainRide
+ GROUP BY
+ 	tr.id,
+     tr.DepartureStation,
+ 	tr.Destination,
+     tr.DepartureTime
+ HAVING COUNT(*) >= 2
+ ORDER BY NumberOfBranches DESC, tr.DepartureTime;
+
+4. Phân tích
+
+Tại mỗi site, truy vấn chỉ trả về các cặp giá trị khác nhau gồm idTrainRide và idBranch. Do đó, một chuyến tàu có hàng trăm vé tại cùng một chi nhánh vẫn chỉ tạo ra một dòng dữ liệu trung gian.
+
+Server Hà Nội thực hiện tổng hợp lần cuối để tìm các chuyến tàu có giao dịch tại nhiều chi nhánh.
+
+VII. Nhận xét chung
+
+Năm truy vấn trên đáp ứng các nhóm nghiệp vụ chính của hệ thống bán vé tàu phân tán:
+
+STT
+
+Truy vấn
+
+Ý nghĩa nghiệp vụ
+
+1
+
+Tra cứu danh sách ghế còn trống của một chuyến tàu
+
+Kiểm tra khả năng đáp ứng trước khi đặt vé
+
+2
+
+Tìm chuyến tàu còn ghế theo tuyến đường, ngày đi và hạng ghế
+
+Tra cứu vé trực tuyến trên toàn hệ thống
+
+3
+
+Thống kê doanh thu theo tháng của từng chi nhánh và toàn hệ thống
+
+Hỗ trợ báo cáo quản trị
+
+4
+
+Tìm các tuyến đường bán chạy nhất
+
+Phân tích nhu cầu đi lại
+
+5
+
+Tìm chuyến tàu có vé được bán tại nhiều chi nhánh
+
+Minh họa truy vấn tổng hợp dữ liệu từ nhiều site
+
+Các truy vấn được xây dựng theo nguyên tắc:
+
+Chỉ truyền qua mạng các cột cần thiết.
+
+Thực hiện phép lọc tại site nguồn càng sớm càng tốt.
+
+Thực hiện phép tổng hợp cục bộ trước khi tổng hợp toàn hệ thống.
+
+Sử dụng UNION ALL đối với các mảnh dữ liệu không trùng lặp.
+
+Hạn chế truyền toàn bộ bảng giao dịch Ticket giữa các server.
+
+Nhờ đó, hệ thống vừa đáp ứng yêu cầu tra cứu toàn cục, vừa giảm chi phí truyền dữ liệu giữa các site.
+
+
+
+
+PHẦN 9: XỬ LÝ ĐỒNG THỜI VÀ ĐẢM BẢO NHẤT QUÁN DỮ LIỆU
+
+I. Bài toán đặt ra
+
+Trong hệ thống bán hàng đa kho, một yêu cầu quan trọng là đảm bảo số lượng tồn kho không bị âm khi nhiều khách hàng đồng thời đặt mua cùng một sản phẩm.
+
+Đối với hệ thống bán vé tàu, nghiệp vụ tương ứng là đảm bảo một ghế trên một chuyến tàu không thể được bán cho hai khách hàng khác nhau.
+
+Ví dụ:
+
+Ghế S01 của chuyến tàu TR01 đang còn trống.
+
+Khách hàng A thực hiện đặt vé tại chi nhánh Đà Nẵng.
+
+Gần như cùng lúc, khách hàng B thực hiện đặt vé trực tuyến hoặc đặt tại chi nhánh Hồ Chí Minh.
+
+Cả hai yêu cầu đều muốn đặt ghế S01 của chuyến tàu TR01.
+
+Nếu hệ thống chỉ kiểm tra trạng thái ghế trước khi thêm vé mà không có cơ chế khóa dữ liệu, cả hai giao dịch có thể cùng đọc được trạng thái AVAILABLE và cùng tạo vé thành công. Khi đó một ghế bị bán hai lần, làm dữ liệu không còn nhất quán.
+
+II. Cách biểu diễn số ghế còn trống
+
+Hệ thống không lưu trực tiếp số lượng ghế còn lại của một chuyến tàu. Thay vào đó, bảng TrainRideSeat được sử dụng để quản lý từng ghế cụ thể trên từng chuyến tàu.
+
+Cấu trúc chính của bảng:
+
+Thuộc tính
+
+Ý nghĩa
+
+idTrainRide
+
+Mã chuyến tàu
+
+idSeat
+
+Mã ghế
+
+status
+
+Trạng thái ghế trên chuyến tàu
+
+Khóa chính của bảng là cặp:
+
+(idTrainRide, idSeat)
+
+
+
+Một ghế có thể xuất hiện trong nhiều chuyến tàu khác nhau, nhưng trong một chuyến tàu cụ thể thì chỉ xuất hiện đúng một lần.
+
+Các trạng thái sử dụng:
+
+Giá trị
+
+Ý nghĩa
+
+AVAILABLE
+
+Ghế còn trống
+
+BOOKED
+
+Ghế đã được đặt
+
+Số ghế còn trống của một chuyến tàu được xác định bằng câu lệnh:
+
+SELECT COUNT(*) AS AvailableSeats
+
+FROM dbo.TrainRideSeat
+
+WHERE idTrainRide = 'TR01'
+
+  AND status = 'AVAILABLE';
+
+
+
+Cách thiết kế này tương đương với quản lý tồn kho theo từng đơn vị sản phẩm. Vì mỗi ghế được quản lý riêng biệt, hệ thống không thể giảm số lượng ghế xuống dưới 0.
+
+
+
+III. Nguyên tắc đảm bảo nhất quán dữ liệu
+
+1. Sử dụng một nơi ghi dữ liệu chính thức
+
+Các chi nhánh có thể lưu bản sao của bảng TrainRideSeat để hỗ trợ tra cứu nhanh. Tuy nhiên, thao tác đặt vé không được thực hiện độc lập trên nhiều bản sao khác nhau.
+
+Server chính tại Hà Nội được chọn làm nơi xác nhận đặt vé chính thức.
+
+Khi một khách hàng đặt vé tại Hà Nội, Đà Nẵng, Hồ Chí Minh hoặc qua website, yêu cầu đặt vé đều phải gửi về Server Hà Nội để kiểm tra lần cuối và cập nhật dữ liệu.
+
+Sau khi giao dịch thành công:
+
+Vé được lưu vào bảng Ticket.
+
+Trạng thái ghế trong bảng TrainRideSeat được chuyển từ AVAILABLE sang BOOKED.
+
+Dữ liệu mới được đồng bộ về các site thông qua cơ chế replication.
+
+Việc tra cứu có thể thực hiện trên bản sao tại chi nhánh để giảm thời gian phản hồi. Tuy nhiên, bước xác nhận cuối cùng luôn phải thực hiện tại Server Hà Nội để tránh việc dữ liệu tại chi nhánh chưa kịp đồng bộ.
+
+2. Sử dụng transaction
+
+Hai thao tác sau phải được thực hiện trong cùng một transaction:
+
+Cập nhật trạng thái ghế từ AVAILABLE sang BOOKED.
+
+Thêm vé mới vào bảng Ticket.
+
+Nếu một trong hai thao tác thất bại, toàn bộ giao dịch phải được hoàn tác bằng ROLLBACK.
+
+Nhờ đó, hệ thống không rơi vào các trạng thái sai như:
+
+Ghế đã chuyển thành BOOKED nhưng không có vé tương ứng.
+
+Vé đã được tạo nhưng ghế vẫn mang trạng thái AVAILABLE.
+
+3. Khóa dòng dữ liệu trong quá trình đặt vé
+
+Khi một giao dịch đang đặt ghế, dòng dữ liệu tương ứng trong bảng TrainRideSeat phải được khóa.
+
+Hệ thống sử dụng:
+
+WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
+
+
+
+Ý nghĩa:
+
+Thành phần
+
+Ý nghĩa
+
+UPDLOCK
+
+Khóa dòng dữ liệu để chuẩn bị cập nhật
+
+HOLDLOCK
+
+Giữ khóa cho đến khi transaction kết thúc
+
+ROWLOCK
+
+Ưu tiên khóa theo dòng, hạn chế khóa toàn bộ bảng
+
+Nếu hai người cùng đặt một ghế:
+
+Giao dịch đến trước sẽ khóa dòng dữ liệu và cập nhật trạng thái thành BOOKED.
+
+Giao dịch đến sau phải chờ giao dịch thứ nhất hoàn tất.
+
+Sau khi được tiếp tục, giao dịch thứ hai kiểm tra lại và nhận thấy ghế không còn AVAILABLE.
+
+Hệ thống từ chối giao dịch thứ hai.
+
+4. Sử dụng ràng buộc duy nhất
+
+Ngoài việc kiểm tra trạng thái ghế, bảng Ticket cần có ràng buộc duy nhất trên cặp:
+
+(idTrainRide, idSeat)
+
+
+
+Ràng buộc này đảm bảo một ghế trên một chuyến tàu chỉ được xuất hiện trong tối đa một vé.
+
+Đây là lớp bảo vệ thứ hai trong trường hợp ứng dụng hoặc lập trình viên vô tình thêm vé trực tiếp mà không gọi stored procedure.
+
+
+
+IV. Quy trình đặt vé an toàn
+
+Khi khách hàng chọn một ghế, hệ thống thực hiện tuần tự các bước sau:
+
+Nhận thông tin chuyến tàu, ghế ngồi, khách hàng và chi nhánh xử lý giao dịch.
+
+Bắt đầu transaction.
+
+Tìm dòng tương ứng trong bảng TrainRideSeat.
+
+Khóa dòng dữ liệu cần cập nhật.
+
+Chỉ cập nhật khi trạng thái hiện tại là AVAILABLE.
+
+Nếu không cập nhật được dòng nào, thông báo ghế đã được đặt hoặc không tồn tại.
+
+Nếu cập nhật thành công, thêm bản ghi mới vào bảng Ticket.
+
+Xác nhận transaction bằng COMMIT.
+
+Đồng bộ dữ liệu mới về các site còn lại.
+
+Sơ đồ xử lý:
+
+Khách hàng chọn ghế
+
+        ↓
+
+Gửi yêu cầu về Server Hà Nội
+
+        ↓
+
+BEGIN TRANSACTION
+
+        ↓
+
+Khóa dòng TrainRideSeat
+
+        ↓
+
+Ghế còn AVAILABLE?
+
+   ┌───────────────┐
+
+   │               │
+
+  Có              Không
+
+   │               │
+
+   ↓               ↓
+
+Cập nhật BOOKED   Thông báo ghế đã được đặt
+
+   │               │
+
+   ↓               ↓
+
+Thêm Ticket       ROLLBACK
+
+   │
+
+   ↓
+
+COMMIT
+
+   │
+
+   ↓
+
+Replication về các site
+
+
+
+
+
+V. Cài đặt các ràng buộc dữ liệu
+
+Trước khi tạo stored procedure, cần bổ sung các ràng buộc để đảm bảo toàn vẹn dữ liệu.
+
+1. Khóa chính của bảng TrainRideSeat
+
+ALTER TABLE dbo.TrainRideSeat
+
+ADD CONSTRAINT PK_TrainRideSeat
+
+PRIMARY KEY (idTrainRide, idSeat);
+
+GO
+
+
+
+2. Giới hạn các giá trị hợp lệ của trạng thái ghế
+
+ALTER TABLE dbo.TrainRideSeat
+
+ADD CONSTRAINT CK_TrainRideSeat_Status
+
+CHECK (status IN ('AVAILABLE', 'BOOKED'));
+
+GO
+
+
+
+3. Một ghế trên một chuyến tàu chỉ được bán một lần
+
+ALTER TABLE dbo.Ticket
+
+ADD CONSTRAINT UQ_Ticket_TrainRide_Seat
+
+UNIQUE (idTrainRide, idSeat);
+
+GO
+
+
+
+4. Vé phải tham chiếu đến một ghế hợp lệ của chuyến tàu
+
+ALTER TABLE dbo.Ticket
+
+ADD CONSTRAINT FK_Ticket_TrainRideSeat
+
+FOREIGN KEY (idTrainRide, idSeat)
+
+REFERENCES dbo.TrainRideSeat(idTrainRide, idSeat);
+
+GO
+
+
+
+Ràng buộc này giúp tránh trường hợp thêm vé cho một ghế không thuộc chuyến tàu đã chọn.
+
+
+
+VI. Stored procedure đặt vé an toàn
+
+Stored procedure sau được tạo tại Server Hà Nội.
+
+CREATE OR ALTER PROCEDURE dbo.sp_BookTicket
+
+    @TicketId varchar(50),
+
+    @TicketPrice float,
+
+    @IdSeat varchar(50),
+
+    @IdCustomer varchar(50),
+
+    @IdTrainRide varchar(50),
+
+    @IdBranch varchar(50)
+
+AS
+
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SET XACT_ABORT ON;
+
+
+
+    BEGIN TRY
+
+        BEGIN TRANSACTION;
+
+
+
+        UPDATE dbo.TrainRideSeat
+
+        WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
+
+        SET status = 'BOOKED'
+
+        WHERE idTrainRide = @IdTrainRide
+
+          AND idSeat = @IdSeat
+
+          AND status = 'AVAILABLE';
+
+
+
+        IF @@ROWCOUNT = 0
+
+        BEGIN
+
+            THROW 50001, N'Ghế đã được đặt hoặc không tồn tại trong chuyến tàu.', 1;
+
+        END;
+
+
+
+        INSERT INTO dbo.Ticket
+
+        (
+
+            id,
+
+            ticketPrice,
+
+            idSeat,
+
+            idCustomer,
+
+            idTrainRide,
+
+            idBranch
+
+        )
+
+        VALUES
+
+        (
+
+            @TicketId,
+
+            @TicketPrice,
+
+            @IdSeat,
+
+            @IdCustomer,
+
+            @IdTrainRide,
+
+            @IdBranch
+
+        );
+
+
+
+        COMMIT TRANSACTION;
+
+
+
+        PRINT N'Đặt vé thành công';
+
+    END TRY
+
+    BEGIN CATCH
+
+        IF @@TRANCOUNT > 0
+
+        BEGIN
+
+            ROLLBACK TRANSACTION;
+
+        END;
+
+
+
+        THROW;
+
+    END CATCH;
+
+END;
+
+GO
+
+
+
+Ví dụ đặt vé:
+
+EXEC dbo.sp_BookTicket
+
+    @TicketId = 'TK001',
+
+    @TicketPrice = 850000,
+
+    @IdSeat = 'S01',
+
+    @IdCustomer = 'KH001',
+
+    @IdTrainRide = 'TR01',
+
+    @IdBranch = 'DN';
+
+
+
+Nếu ghế S01 của chuyến TR01 đã được đặt trước đó, hệ thống trả về thông báo:
+
+Ghế đã được đặt hoặc không tồn tại trong chuyến tàu.
+
+
+
+
+
+VII. Stored procedure hủy vé
+
+Khi khách hàng hủy vé, hệ thống phải xóa vé và chuyển trạng thái ghế về AVAILABLE trong cùng một transaction.
+
+CREATE OR ALTER PROCEDURE dbo.sp_CancelTicket
+
+    @TicketId varchar(50)
+
+AS
+
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SET XACT_ABORT ON;
+
+
+
+    DECLARE @IdTrainRide varchar(50);
+
+    DECLARE @IdSeat varchar(50);
+
+
+
+    BEGIN TRY
+
+        BEGIN TRANSACTION;
+
+
+
+        SELECT
+
+            @IdTrainRide = idTrainRide,
+
+            @IdSeat = idSeat
+
+        FROM dbo.Ticket
+
+        WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
+
+        WHERE id = @TicketId;
+
+
+
+        IF @IdTrainRide IS NULL OR @IdSeat IS NULL
+
+        BEGIN
+
+            THROW 50002, N'Không tìm thấy vé cần hủy.', 1;
+
+        END;
+
+
+
+        DELETE FROM dbo.Ticket
+
+        WHERE id = @TicketId;
+
+
+
+        UPDATE dbo.TrainRideSeat
+
+        SET status = 'AVAILABLE'
+
+        WHERE idTrainRide = @IdTrainRide
+
+          AND idSeat = @IdSeat;
+
+
+
+        COMMIT TRANSACTION;
+
+
+
+        PRINT N'Hủy vé thành công';
+
+    END TRY
+
+    BEGIN CATCH
+
+        IF @@TRANCOUNT > 0
+
+        BEGIN
+
+            ROLLBACK TRANSACTION;
+
+        END;
+
+
+
+        THROW;
+
+    END CATCH;
+
+END;
+
+GO
+
+
+
+Ví dụ:
+
+EXEC dbo.sp_CancelTicket
+
+    @TicketId = 'TK001';
+
+
+
+
+
+VIII. Mô phỏng hai người đặt cùng một ghế
+
+1. Chuẩn bị dữ liệu kiểm thử
+
+Chọn một ghế đang tồn tại trong bảng TrainRideSeat, sau đó đặt lại trạng thái thành AVAILABLE.
+
+UPDATE dbo.TrainRideSeat
+
+SET status = 'AVAILABLE'
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+DELETE FROM dbo.Ticket
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+Các mã TR01, S01, KH001, KH002 cần được thay bằng mã thực tế đang tồn tại trong cơ sở dữ liệu.
+
+2. Tại cửa sổ truy vấn thứ nhất
+
+Chạy đoạn lệnh sau:
+
+BEGIN TRANSACTION;
+
+
+
+UPDATE dbo.TrainRideSeat
+
+WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
+
+SET status = 'BOOKED'
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01'
+
+  AND status = 'AVAILABLE';
+
+
+
+WAITFOR DELAY '00:00:10';
+
+
+
+INSERT INTO dbo.Ticket
+
+(
+
+    id,
+
+    ticketPrice,
+
+    idSeat,
+
+    idCustomer,
+
+    idTrainRide,
+
+    idBranch
+
+)
+
+VALUES
+
+(
+
+    'TK_TEST_01',
+
+    850000,
+
+    'S01',
+
+    'KH001',
+
+    'TR01',
+
+    'DN'
+
+);
+
+
+
+COMMIT TRANSACTION;
+
+
+
+3. Ngay sau đó, tại cửa sổ truy vấn thứ hai
+
+Trong thời gian cửa sổ thứ nhất đang chờ 10 giây, chạy:
+
+EXEC dbo.sp_BookTicket
+
+    @TicketId = 'TK_TEST_02',
+
+    @TicketPrice = 850000,
+
+    @IdSeat = 'S01',
+
+    @IdCustomer = 'KH002',
+
+    @IdTrainRide = 'TR01',
+
+    @IdBranch = 'HCM';
+
+
+
+4. Kết quả mong đợi
+
+Giao dịch thứ nhất đặt vé thành công.
+
+Giao dịch thứ hai phải chờ đến khi giao dịch thứ nhất kết thúc.
+
+Sau khi kiểm tra lại dữ liệu, giao dịch thứ hai thất bại vì ghế không còn ở trạng thái AVAILABLE.
+
+Trong bảng Ticket chỉ tồn tại một vé ứng với ghế S01 của chuyến TR01.
+
+Kiểm tra dữ liệu:
+
+SELECT *
+
+FROM dbo.Ticket
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+SELECT *
+
+FROM dbo.TrainRideSeat
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+Kết quả đúng:
+
+Bảng
+
+Kết quả
+
+Ticket
+
+Chỉ có một vé
+
+TrainRideSeat
+
+Trạng thái là BOOKED
+
+
+
+IX. Ảnh hưởng của replication
+
+Replication giúp đồng bộ dữ liệu giữa Server Hà Nội và các chi nhánh. Tuy nhiên, replication có thể tồn tại một khoảng trễ ngắn.
+
+Ví dụ:
+
+Chi nhánh Đà Nẵng đọc bản sao và thấy ghế S01 đang trống.
+
+Một khách hàng khác vừa đặt ghế S01 tại Hồ Chí Minh.
+
+Thông tin mới chưa kịp đồng bộ về Đà Nẵng.
+
+Khách hàng tại Đà Nẵng vẫn có thể nhìn thấy ghế S01 trong danh sách tra cứu.
+
+Đây không phải lỗi nghiêm trọng nếu bước xác nhận cuối cùng luôn thực hiện tại Server Hà Nội.
+
+Khi khách hàng bấm đặt vé:
+
+Server Hà Nội kiểm tra lại trạng thái chính thức.
+
+Nếu ghế đã được đặt, hệ thống từ chối giao dịch.
+
+Người dùng được yêu cầu chọn ghế khác.
+
+Như vậy:
+
+Bản sao tại chi nhánh được dùng để đọc nhanh.
+
+Server Hà Nội là nơi ghi dữ liệu chính thức.
+
+Stored procedure và transaction đảm bảo không có ghế nào bị bán hai lần.
+
+
+
+X. Đánh giá kết quả
+
+Cơ chế xử lý đồng thời của hệ thống đảm bảo các yêu cầu sau:
+
+Yêu cầu
+
+Kết quả
+
+Một ghế không bị bán cho hai khách hàng
+
+Đáp ứng
+
+Số ghế còn trống không bị âm
+
+Đáp ứng
+
+Dữ liệu vé và trạng thái ghế luôn đồng bộ trong một giao dịch
+
+Đáp ứng
+
+Có thể tra cứu nhanh tại chi nhánh
+
+Đáp ứng
+
+Có thể xử lý trường hợp dữ liệu replication chưa cập nhật kịp thời
+
+Đáp ứng
+
+Có thể mô phỏng hai giao dịch đặt vé đồng thời
+
+Đáp ứng
+
+Thiết kế này ưu tiên tính nhất quán dữ liệu. Trong trường hợp Server Hà Nội tạm thời không thể kết nối, hệ thống vẫn có thể cho phép khách hàng tra cứu thông tin từ bản sao tại chi nhánh nhưng tạm thời không xác nhận đặt vé mới. Cách xử lý này giúp tránh tình trạng bán trùng ghế.
+
+
+
+
+PHẦN 10: KIỂM THỬ VÀ ĐÁNH GIÁ HỆ THỐNG
+
+I. Mục tiêu kiểm thử
+
+Sau khi xây dựng cơ sở dữ liệu phân tán cho hệ thống bán vé tàu, nhóm tiến hành kiểm thử nhằm đánh giá các nội dung sau:
+
+Khả năng tra cứu dữ liệu tại từng site và trên toàn hệ thống.
+
+Khả năng tổng hợp dữ liệu từ nhiều chi nhánh.
+
+Khả năng đặt vé và hủy vé.
+
+Khả năng ngăn chặn tình trạng hai khách hàng mua cùng một ghế.
+
+Khả năng đồng bộ dữ liệu giữa Server chính và các Server chi nhánh.
+
+Mức độ phù hợp của mô hình phân mảnh và nhân bản dữ liệu.
+
+Hệ thống được triển khai tại ba vị trí:
+
+Site
+
+Vai trò
+
+Hà Nội
+
+Server chính, lưu dữ liệu toàn hệ thống và xác nhận giao dịch đặt vé
+
+Đà Nẵng
+
+Server chi nhánh, hỗ trợ tra cứu và xử lý yêu cầu từ khu vực Đà Nẵng
+
+Hồ Chí Minh
+
+Server chi nhánh, hỗ trợ tra cứu và xử lý yêu cầu từ khu vực Hồ Chí Minh
+
+
+
+II. Dữ liệu kiểm thử
+
+Để minh họa quá trình kiểm thử, nhóm sử dụng một số dữ liệu mẫu như sau:
+
+1. Chi nhánh
+
+Mã chi nhánh
+
+Địa điểm
+
+HN
+
+Hà Nội
+
+DN
+
+Đà Nẵng
+
+HCM
+
+Hồ Chí Minh
+
+2. Chuyến tàu
+
+Mã chuyến
+
+Ga khởi hành
+
+Ga đến
+
+Thời gian khởi hành
+
+TR01
+
+Hà Nội
+
+Đà Nẵng
+
+08:00 ngày 05/06/2026
+
+TR02
+
+Đà Nẵng
+
+Hồ Chí Minh
+
+13:00 ngày 05/06/2026
+
+TR03
+
+Hà Nội
+
+Hồ Chí Minh
+
+20:00 ngày 06/06/2026
+
+3. Ghế ngồi
+
+Mã ghế
+
+Số ghế
+
+Hạng ghế
+
+S01
+
+A01
+
+Hạng 1
+
+S02
+
+A02
+
+Hạng 1
+
+S03
+
+B01
+
+Hạng 2
+
+S04
+
+B02
+
+Hạng 2
+
+4. Trạng thái ghế trên chuyến tàu
+
+Ví dụ dữ liệu ban đầu của chuyến TR01:
+
+Mã chuyến
+
+Mã ghế
+
+Trạng thái
+
+TR01
+
+S01
+
+AVAILABLE
+
+TR01
+
+S02
+
+AVAILABLE
+
+TR01
+
+S03
+
+BOOKED
+
+TR01
+
+S04
+
+AVAILABLE
+
+Các mã dữ liệu trên chỉ mang tính minh họa. Khi chạy kiểm thử thực tế, nhóm thay bằng mã đang tồn tại trong cơ sở dữ liệu.
+
+
+
+III. Kiểm thử truy vấn phân tán
+
+1. Test case 01: Tra cứu danh sách ghế còn trống của một chuyến tàu
+
+Mục đích
+
+Kiểm tra khả năng tra cứu ghế còn trống của một chuyến tàu sau khi tổng hợp thông tin vé từ nhiều site.
+
+Dữ liệu đầu vào
+
+Mã chuyến tàu: TR01
+
+
+
+Thao tác
+
+Thực hiện truy vấn tra cứu danh sách ghế còn trống của chuyến tàu TR01.
+
+Kết quả mong đợi
+
+Hệ thống chỉ hiển thị các ghế có trạng thái AVAILABLE và chưa có vé tương ứng trên bất kỳ site nào.
+
+Ví dụ:
+
+Mã chuyến
+
+Mã ghế
+
+Số ghế
+
+Hạng ghế
+
+TR01
+
+S01
+
+A01
+
+Hạng 1
+
+TR01
+
+S02
+
+A02
+
+Hạng 1
+
+TR01
+
+S04
+
+B02
+
+Hạng 2
+
+Ghế S03 không được hiển thị vì đã có trạng thái BOOKED.
+
+Đánh giá
+
+Truy vấn đáp ứng yêu cầu tra cứu khả năng phục vụ của hệ thống. Việc chỉ truyền các thuộc tính cần thiết như idTrainRide và idSeat giúp giảm dữ liệu trung gian giữa các site.
+
+Ảnh minh họa
+
+[Chèn ảnh kết quả truy vấn tra cứu ghế trống tại đây]
+
+
+
+
+
+2. Test case 02: Tìm chuyến tàu còn ghế theo tuyến đường, ngày đi và hạng ghế
+
+Mục đích
+
+Kiểm tra khả năng tìm kiếm vé trực tuyến theo nhu cầu của khách hàng.
+
+Dữ liệu đầu vào
+
+Ga khởi hành: Hà Nội
+
+Ga đến: Đà Nẵng
+
+Ngày đi: 05/06/2026
+
+Hạng ghế: Hạng 1
+
+
+
+Thao tác
+
+Thực hiện truy vấn tìm các chuyến tàu thỏa mãn điều kiện và đếm số ghế còn trống.
+
+Kết quả mong đợi
+
+Hệ thống trả về danh sách các chuyến phù hợp và số lượng ghế còn lại.
+
+Ví dụ:
+
+Mã chuyến
+
+Ga khởi hành
+
+Ga đến
+
+Thời gian
+
+Hạng ghế
+
+Số ghế còn trống
+
+TR01
+
+Hà Nội
+
+Đà Nẵng
+
+08:00 ngày 05/06/2026
+
+Hạng 1
+
+2
+
+Đánh giá
+
+Truy vấn thực hiện phép lọc chuyến tàu trước khi kiểm tra vé đã bán. Nhờ đó, hệ thống không cần tải toàn bộ dữ liệu vé từ các site về Server Hà Nội.
+
+Ảnh minh họa
+
+[Chèn ảnh kết quả tìm chuyến tàu còn ghế tại đây]
+
+
+
+
+
+3. Test case 03: Thống kê doanh thu của từng chi nhánh và toàn hệ thống
+
+Mục đích
+
+Kiểm tra khả năng tổng hợp dữ liệu doanh thu từ nhiều site.
+
+Điều kiện
+
+Bảng Ticket đã bổ sung cột thời gian đặt vé:
+
+bookingTime
+
+
+
+Dữ liệu đầu vào
+
+Từ ngày: 01/05/2026
+
+Đến trước ngày: 01/06/2026
+
+
+
+Thao tác
+
+Mỗi site thực hiện tính tổng số vé và doanh thu cục bộ. Server Hà Nội nhận kết quả tổng hợp từ từng site và tính tổng toàn hệ thống.
+
+Kết quả mong đợi
+
+Ví dụ:
+
+Chi nhánh
+
+Số vé đã bán
+
+Doanh thu
+
+HN
+
+120
+
+96.000.000
+
+DN
+
+85
+
+65.500.000
+
+HCM
+
+150
+
+122.000.000
+
+Toàn hệ thống
+
+355
+
+283.500.000
+
+Đánh giá
+
+Thay vì truyền toàn bộ bảng Ticket, mỗi site chỉ gửi một dòng dữ liệu đã tổng hợp. Cách làm này giúp giảm đáng kể chi phí truyền dữ liệu qua mạng.
+
+Ảnh minh họa
+
+[Chèn ảnh thống kê doanh thu theo chi nhánh và toàn hệ thống tại đây]
+
+
+
+
+
+4. Test case 04: Tìm các tuyến đường bán chạy nhất
+
+Mục đích
+
+Kiểm tra khả năng tổng hợp số lượng vé đã bán theo tuyến đường trên toàn hệ thống.
+
+Thao tác
+
+Thực hiện truy vấn nhóm dữ liệu theo:
+
+DepartureStation, Destination
+
+
+
+Sau đó sắp xếp giảm dần theo số lượng vé đã bán.
+
+Kết quả mong đợi
+
+Ví dụ:
+
+STT
+
+Ga khởi hành
+
+Ga đến
+
+Tổng số vé
+
+1
+
+Hà Nội
+
+Hồ Chí Minh
+
+210
+
+2
+
+Hà Nội
+
+Đà Nẵng
+
+155
+
+3
+
+Đà Nẵng
+
+Hồ Chí Minh
+
+120
+
+Đánh giá
+
+Truy vấn hỗ trợ trụ sở chính đánh giá nhu cầu đi lại của hành khách. Từ kết quả này, doanh nghiệp có thể cân nhắc tăng số chuyến tàu hoặc tăng số toa tàu đối với các tuyến phổ biến.
+
+Ảnh minh họa
+
+[Chèn ảnh top tuyến đường bán chạy tại đây]
+
+
+
+
+
+5. Test case 05: Tìm chuyến tàu có vé được bán tại nhiều chi nhánh
+
+Mục đích
+
+Kiểm tra khả năng hợp nhất dữ liệu giao dịch từ nhiều site.
+
+Thao tác
+
+Mỗi chi nhánh trả về danh sách các chuyến tàu đã phát sinh giao dịch. Server Hà Nội đếm số lượng chi nhánh đã bán vé cho từng chuyến.
+
+Kết quả mong đợi
+
+Ví dụ:
+
+Mã chuyến
+
+Ga khởi hành
+
+Ga đến
+
+Số chi nhánh bán vé
+
+Danh sách chi nhánh
+
+TR01
+
+Hà Nội
+
+Đà Nẵng
+
+3
+
+HN, DN, HCM
+
+TR03
+
+Hà Nội
+
+Hồ Chí Minh
+
+2
+
+HN, HCM
+
+Đánh giá
+
+Truy vấn minh họa đặc trưng của hệ thống phân tán: một chuyến tàu có thể phát sinh giao dịch tại nhiều chi nhánh khác nhau nhưng vẫn được tổng hợp chính xác tại Server Hà Nội.
+
+Ảnh minh họa
+
+[Chèn ảnh danh sách chuyến tàu được bán tại nhiều chi nhánh tại đây]
+
+
+
+
+
+IV. Kiểm thử nghiệp vụ đặt vé
+
+1. Test case 06: Đặt vé thành công khi ghế còn trống
+
+Mục đích
+
+Kiểm tra quy trình đặt vé trong trường hợp ghế chưa được khách hàng khác lựa chọn.
+
+Dữ liệu đầu vào
+
+Mã vé: TK_TEST_01
+
+Mã khách hàng: KH001
+
+Mã chuyến tàu: TR01
+
+Mã ghế: S01
+
+Chi nhánh xử lý: DN
+
+Giá vé: 850000
+
+
+
+Điều kiện ban đầu
+
+SELECT *
+
+FROM dbo.TrainRideSeat
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+Kết quả ban đầu:
+
+Mã chuyến
+
+Mã ghế
+
+Trạng thái
+
+TR01
+
+S01
+
+AVAILABLE
+
+Thao tác
+
+EXEC dbo.sp_BookTicket
+
+    @TicketId = 'TK_TEST_01',
+
+    @TicketPrice = 850000,
+
+    @IdSeat = 'S01',
+
+    @IdCustomer = 'KH001',
+
+    @IdTrainRide = 'TR01',
+
+    @IdBranch = 'DN';
+
+
+
+Kết quả mong đợi
+
+Vé TK_TEST_01 được thêm vào bảng Ticket.
+
+Trạng thái ghế S01 của chuyến TR01 chuyển thành BOOKED.
+
+Hệ thống hiển thị thông báo đặt vé thành công.
+
+Kiểm tra:
+
+SELECT *
+
+FROM dbo.Ticket
+
+WHERE id = 'TK_TEST_01';
+
+
+
+SELECT *
+
+FROM dbo.TrainRideSeat
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+Ảnh minh họa
+
+[Chèn ảnh kết quả đặt vé thành công tại đây]
+
+
+
+
+
+2. Test case 07: Hủy vé và trả lại trạng thái ghế
+
+Mục đích
+
+Kiểm tra tính nhất quán dữ liệu khi khách hàng hủy vé.
+
+Dữ liệu đầu vào
+
+Mã vé: TK_TEST_01
+
+
+
+Thao tác
+
+EXEC dbo.sp_CancelTicket
+
+    @TicketId = 'TK_TEST_01';
+
+
+
+Kết quả mong đợi
+
+Vé TK_TEST_01 bị xóa khỏi bảng Ticket.
+
+Ghế S01 của chuyến TR01 chuyển từ BOOKED về AVAILABLE.
+
+Hệ thống hiển thị thông báo hủy vé thành công.
+
+Kiểm tra:
+
+SELECT *
+
+FROM dbo.Ticket
+
+WHERE id = 'TK_TEST_01';
+
+
+
+SELECT *
+
+FROM dbo.TrainRideSeat
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+Ảnh minh họa
+
+[Chèn ảnh kết quả hủy vé tại đây]
+
+
+
+
+
+V. Kiểm thử xử lý đồng thời
+
+Test case 08: Hai khách hàng đồng thời đặt cùng một ghế
+
+Mục đích
+
+Kiểm tra khả năng ngăn chặn tình trạng một ghế bị bán hai lần.
+
+Tình huống
+
+Khách hàng A đặt ghế S01 của chuyến TR01 tại chi nhánh Đà Nẵng.
+
+Gần như cùng thời điểm đó, khách hàng B đặt cùng ghế S01 tại chi nhánh Hồ Chí Minh.
+
+Bước 1: Chuẩn bị dữ liệu
+
+DELETE FROM dbo.Ticket
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+UPDATE dbo.TrainRideSeat
+
+SET status = 'AVAILABLE'
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+Bước 2: Chạy tại cửa sổ truy vấn thứ nhất
+
+BEGIN TRANSACTION;
+
+
+
+UPDATE dbo.TrainRideSeat
+
+WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
+
+SET status = 'BOOKED'
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01'
+
+  AND status = 'AVAILABLE';
+
+
+
+WAITFOR DELAY '00:00:10';
+
+
+
+INSERT INTO dbo.Ticket
+
+(
+
+    id,
+
+    ticketPrice,
+
+    idSeat,
+
+    idCustomer,
+
+    idTrainRide,
+
+    idBranch
+
+)
+
+VALUES
+
+(
+
+    'TK_TEST_A',
+
+    850000,
+
+    'S01',
+
+    'KH001',
+
+    'TR01',
+
+    'DN'
+
+);
+
+
+
+COMMIT TRANSACTION;
+
+
+
+Bước 3: Ngay lập tức chạy tại cửa sổ truy vấn thứ hai
+
+EXEC dbo.sp_BookTicket
+
+    @TicketId = 'TK_TEST_B',
+
+    @TicketPrice = 850000,
+
+    @IdSeat = 'S01',
+
+    @IdCustomer = 'KH002',
+
+    @IdTrainRide = 'TR01',
+
+    @IdBranch = 'HCM';
+
+
+
+Kết quả mong đợi
+
+Giao dịch đầu tiên thành công.
+
+Giao dịch thứ hai phải chờ giao dịch đầu tiên kết thúc.
+
+Sau khi kiểm tra lại, giao dịch thứ hai bị từ chối.
+
+Trong bảng Ticket chỉ có duy nhất một vé ứng với ghế S01 của chuyến TR01.
+
+Kiểm tra:
+
+SELECT *
+
+FROM dbo.Ticket
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+SELECT *
+
+FROM dbo.TrainRideSeat
+
+WHERE idTrainRide = 'TR01'
+
+  AND idSeat = 'S01';
+
+
+
+Kết quả đúng
+
+Bảng
+
+Kết quả
+
+Ticket
+
+Chỉ có một bản ghi
+
+TrainRideSeat
+
+Ghế S01 có trạng thái BOOKED
+
+Đánh giá
+
+Stored procedure sử dụng transaction và khóa dòng dữ liệu giúp ngăn chặn tình trạng bán trùng ghế. Ràng buộc duy nhất trên cặp (idTrainRide, idSeat) là lớp bảo vệ bổ sung nếu dữ liệu được thêm trực tiếp vào bảng.
+
+Ảnh minh họa
+
+[Chèn ảnh hai cửa sổ truy vấn khi mô phỏng đặt vé đồng thời tại đây]
+
+
+
+
+
+VI. Kiểm thử replication
+
+Test case 09: Đồng bộ dữ liệu từ Server Hà Nội về Server chi nhánh
+
+Mục đích
+
+Kiểm tra khả năng đồng bộ dữ liệu dùng chung sau khi dữ liệu tại Server chính thay đổi.
+
+Tình huống
+
+Thêm một ga tàu mới tại Server Hà Nội:
+
+INSERT INTO dbo.Station
+
+(
+
+    Name,
+
+    StationClass,
+
+    Address
+
+)
+
+VALUES
+
+(
+
+    N'Ga TEST',
+
+    N'Hạng 2',
+
+    N'Địa chỉ kiểm thử'
+
+);
+
+
+
+Sau đó kiểm tra tại Server Đà Nẵng và Server Hồ Chí Minh:
+
+SELECT *
+
+FROM dbo.Station
+
+WHERE Name = N'Ga TEST';
+
+
+
+Kết quả mong đợi
+
+Bản ghi ga tàu mới xuất hiện tại cả hai Server chi nhánh sau khi quá trình đồng bộ hoàn tất.
+
+Đánh giá
+
+Replication phù hợp với các bảng dùng chung, có tần suất đọc cao nhưng tần suất cập nhật thấp như:
+
+Branch
+
+Station
+
+Train
+
+Seat
+
+TrainRide
+
+Việc nhân bản các bảng này giúp chi nhánh đọc dữ liệu nhanh hơn mà không cần gửi truy vấn về Server Hà Nội trong mọi trường hợp.
+
+Ảnh minh họa
+
+[Chèn ảnh dữ liệu Station tại Server Hà Nội, Đà Nẵng và Hồ Chí Minh tại đây]
+
+
+
+
+
+VII. Kiểm thử truy vấn thông qua Linked Server
+
+Test case 10: Đọc dữ liệu vé tại chi nhánh từ Server Hà Nội
+
+Mục đích
+
+Kiểm tra kết nối giữa các Server thông qua Linked Server.
+
+Thao tác
+
+Tại Server Hà Nội, thực hiện:
+
+SELECT TOP 10 *
+
+FROM [LINK_DN].[QLBV_DN].[dbo].[Ticket];
+
+
+
+SELECT TOP 10 *
+
+FROM [LINK_HCM].[QLBV_HCM].[dbo].[Ticket];
+
+
+
+Kết quả mong đợi
+
+Server Hà Nội đọc được dữ liệu vé từ Server Đà Nẵng và Hồ Chí Minh.
+
+Đánh giá
+
+Linked Server cho phép Server Hà Nội thực hiện các truy vấn phân tán và tổng hợp dữ liệu toàn hệ thống. Tuy nhiên, khi xây dựng truy vấn cần hạn chế tải toàn bộ bảng dữ liệu lớn về Server chính. Phép lọc và phép tổng hợp nên được thực hiện tại site nguồn trước.
+
+Ảnh minh họa
+
+[Chèn ảnh truy vấn Linked Server thành công tại đây]
+
+
+
+
+
+VIII. Bảng tổng hợp kết quả kiểm thử
+
+Sau khi chạy thực tế, nhóm điền kết quả vào bảng sau:
+
+Mã test
+
+Nội dung kiểm thử
+
+Kết quả mong đợi
+
+Kết quả thực tế
+
+Trạng thái
+
+TC01
+
+Tra cứu ghế trống của một chuyến tàu
+
+Chỉ hiển thị ghế chưa được đặt
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+TC02
+
+Tìm chuyến tàu còn ghế
+
+Trả về đúng chuyến và số ghế còn lại
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+TC03
+
+Thống kê doanh thu
+
+Tổng hợp đúng theo chi nhánh và toàn hệ thống
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+TC04
+
+Tìm tuyến bán chạy
+
+Xếp hạng đúng theo tổng số vé
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+TC05
+
+Tìm chuyến được bán tại nhiều chi nhánh
+
+Hiển thị đúng số site bán vé
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+TC06
+
+Đặt vé thành công
+
+Tạo vé và chuyển ghế sang BOOKED
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+TC07
+
+Hủy vé
+
+Xóa vé và chuyển ghế về AVAILABLE
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+TC08
+
+Hai người đặt cùng một ghế
+
+Chỉ một giao dịch thành công
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+TC09
+
+Kiểm tra replication
+
+Dữ liệu mới xuất hiện tại các site
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+TC10
+
+Kiểm tra Linked Server
+
+Server Hà Nội đọc được dữ liệu chi nhánh
+
+Bổ sung sau khi chạy test
+
+Chờ kiểm thử
+
+
+
+IX. Đánh giá hệ thống
+
+1. Ưu điểm
+
+a. Phù hợp với đặc trưng của cơ sở dữ liệu phân tán
+
+Hệ thống được triển khai tại nhiều site. Các chi nhánh có thể xử lý hoạt động tra cứu tại khu vực của mình, trong khi Server Hà Nội quản lý dữ liệu toàn hệ thống.
+
+b. Phân mảnh dữ liệu giao dịch hợp lý
+
+Bảng Ticket được phân mảnh ngang theo idBranch. Mỗi site lưu các giao dịch thuộc chi nhánh tương ứng. Điều này giúp giảm số lượng bản ghi cần xử lý tại từng site.
+
+c. Nhân bản dữ liệu dùng chung
+
+Các bảng ít thay đổi nhưng được đọc thường xuyên như Station, Train, TrainRide và Seat được nhân bản tại các chi nhánh. Việc này giúp tăng tốc độ tra cứu và giảm tải cho Server Hà Nội.
+
+d. Hỗ trợ truy vấn toàn hệ thống
+
+Thông qua Linked Server, Server Hà Nội có thể tổng hợp dữ liệu từ Đà Nẵng và Hồ Chí Minh để phục vụ:
+
+Tra cứu ghế trống.
+
+Thống kê doanh thu.
+
+Xác định tuyến đường bán chạy.
+
+Xác định chuyến tàu có giao dịch tại nhiều chi nhánh.
+
+e. Đảm bảo không bán trùng ghế
+
+Việc sử dụng bảng TrainRideSeat, transaction, khóa dòng và ràng buộc duy nhất giúp đảm bảo một ghế trên một chuyến tàu chỉ được bán cho một khách hàng.
+
+
+
+2. Hạn chế
+
+a. Server Hà Nội là điểm xác nhận giao dịch trung tâm
+
+Mọi thao tác đặt vé cần được kiểm tra lần cuối tại Server Hà Nội. Nếu Server Hà Nội mất kết nối, hệ thống có thể vẫn cho phép tra cứu nhưng không nên xác nhận đặt vé mới.
+
+b. Replication có thể tồn tại độ trễ
+
+Sau khi một vé được đặt, dữ liệu tại chi nhánh có thể chưa được cập nhật ngay lập tức. Vì vậy, danh sách ghế hiển thị tại chi nhánh đôi khi có thể chậm hơn dữ liệu chính thức trong một khoảng thời gian ngắn.
+
+c. Chưa thực hiện đo hiệu năng với dữ liệu lớn
+
+Trong phạm vi bài tập lớn, nhóm mới mô phỏng với tập dữ liệu minh họa. Chưa tiến hành kiểm thử tải với hàng nghìn yêu cầu đặt vé đồng thời.
+
+d. Chưa xử lý đầy đủ quy trình thanh toán
+
+Mô hình hiện tại tập trung vào nghiệp vụ đặt vé và quản lý trạng thái ghế. Các nội dung như thanh toán trực tuyến, hoàn tiền hoặc giữ ghế tạm thời chưa được triển khai đầy đủ.
+
+
+
+3. Hướng phát triển
+
+Trong tương lai, hệ thống có thể được cải tiến theo các hướng sau:
+
+Bổ sung trạng thái HOLD để giữ ghế trong một khoảng thời gian khi khách hàng đang thanh toán.
+
+Bổ sung thời điểm hết hạn giữ ghế.
+
+Bổ sung trạng thái thanh toán và trạng thái vé.
+
+Bổ sung chỉ mục cho các thuộc tính thường xuyên được tìm kiếm.
+
+Thử nghiệm với dữ liệu lớn hơn và nhiều yêu cầu đồng thời hơn.
+
+Xây dựng giao diện đặt vé trực tuyến.
+
+Bổ sung cơ chế dự phòng cho Server Hà Nội.
+
+Theo dõi thời gian phản hồi và lượng dữ liệu truyền qua mạng giữa các site.
+
+
+
+X. Kết luận
+
+Qua quá trình phân tích và kiểm thử, mô hình cơ sở dữ liệu phân tán cho hệ thống bán vé tàu đáp ứng được các yêu cầu cơ bản:
+
+Quản lý dữ liệu tại nhiều chi nhánh.
+
+Tra cứu dữ liệu toàn hệ thống.
+
+Tổng hợp báo cáo doanh thu.
+
+Phân mảnh dữ liệu giao dịch.
+
+Nhân bản dữ liệu dùng chung.
+
+Đảm bảo nhất quán trạng thái ghế.
+
+Ngăn chặn tình trạng bán trùng vé khi có nhiều giao dịch đồng thời.
+
+Mô hình hiện tại phù hợp với phạm vi bài tập lớn và có thể tiếp tục mở rộng thành hệ thống đặt vé trực tuyến hoàn chỉnh.
