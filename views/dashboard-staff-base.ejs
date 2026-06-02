@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Quản lý cơ sở - TicketBooking</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div style="display:flex;align-items:center;gap:10px">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="navbar-brand">🎫 TicketBooking - Quản lý cơ sở</div>
+        </div>
+        <div class="navbar-right">
+            <span><%= user.fullname %> - <%= user.branchName || user.idBranch %></span>
+            <a href="/logout" class="btn-logout">Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="mobile-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="container dashboard">
+        <div class="sidebar" id="sidebar">
+            <ul class="menu">
+                <li class="active"><a href="#overview" onclick="return navTo('#overview')">📊 Tổng quan</a></li>
+                <li><a href="#revenue" onclick="return navTo('#revenue')">💰 Doanh thu</a></li>
+                <li><a href="#tickets" onclick="return navTo('#tickets')">🎫 Vé tại cơ sở</a></li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <!-- Overview -->
+            <section id="overview" class="section active">
+                <h2>Tổng quan - <%= user.branchName || user.idBranch %></h2>
+                <div class="stats-grid">
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e8f5e9;color:#28a745">💰</div>
+                        <div class="stat-info">
+                            <h4>Tổng doanh thu</h4>
+                            <div class="stat-value" id="statRevenue">Đang tải...</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e3f2fd;color:#667eea">🎫</div>
+                        <div class="stat-info">
+                            <h4>Tổng vé bán</h4>
+                            <div class="stat-value" id="statTickets">Đang tải...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top:30px">Thông tin cá nhân</h2>
+                <div class="info-card">
+                    <p><strong>Họ tên:</strong> <%= user.fullname %></p>
+                    <p><strong>Số điện thoại:</strong> <%= user.phone %></p>
+                    <p><strong>Mã nhân viên:</strong> <%= user.id %></p>
+                    <p><strong>Mức lương:</strong> <%= (user.salary || 0).toLocaleString('vi-VN') %> VNĐ</p>
+                    <p><strong>Chi nhánh:</strong> <%= user.branchName || user.idBranch %></p>
+                    <p><strong>Chức vụ:</strong> <%= user.employeeRole %></p>
+                </div>
+            </section>
+
+            <!-- Revenue -->
+            <section id="revenue" class="section">
+                <h2>Doanh thu - <%= user.branchName || user.idBranch %></h2>
+                
+                <!-- Filters -->
+                <div class="filter-section" style="background:#f9f9f9;padding:20px;border-radius:8px;margin-bottom:20px">
+                    <h4 style="width:100%;margin-bottom:10px">🔍 Bộ lọc doanh thu</h4>
+                    <div class="filter-row" style="width:100%">
+                        <div class="filter-group">
+                            <label>Khoảng thời gian</label>
+                            <select id="filterTimeRange" onchange="onTimeRangeChange()">
+                                <option value="all">Tất cả</option>
+                                <option value="today">Hôm nay</option>
+                                <option value="7days">7 ngày qua</option>
+                                <option value="30days">30 ngày qua</option>
+                                <option value="custom">Tùy chọn</option>
+                            </select>
+                        </div>
+                        <div class="filter-group" id="customDateFrom" style="display:none">
+                            <label>Từ ngày</label>
+                            <input type="date" id="filterFrom">
+                        </div>
+                        <div class="filter-group" id="customDateTo" style="display:none">
+                            <label>Đến ngày</label>
+                            <input type="date" id="filterTo">
+                        </div>
+                        <div class="filter-group">
+                            <label>Ga đi</label>
+                            <select id="filterDeparture">
+                                <option value="">Tất cả</option>
+                                <% stations.forEach(st => { %>
+                                    <option value="<%= st.Name %>"><%= st.Name %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Ga đến</label>
+                            <select id="filterDestination">
+                                <option value="">Tất cả</option>
+                                <% stations.forEach(st => { %>
+                                    <option value="<%= st.Name %>"><%= st.Name %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Hạng ghế</label>
+                            <select id="filterSeatClass">
+                                <option value="">Tất cả</option>
+                                <option value="Hạng 1">Hạng 1</option>
+                                <option value="Hạng 2">Hạng 2</option>
+                            </select>
+                        </div>
+                        <div class="filter-group" style="justify-content:flex-end">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-primary" onclick="loadBranchStats()">Lọc</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="stats-grid" id="revenueStats">
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e8f5e9;color:#28a745">💰</div>
+                        <div class="stat-info">
+                            <h4>Doanh thu</h4>
+                            <div class="stat-value" id="filteredRevenue">-</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div class="stat-icon" style="background:#e3f2fd;color:#667eea">🎫</div>
+                        <div class="stat-info">
+                            <h4>Số vé</h4>
+                            <div class="stat-value" id="filteredTickets">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="stats-grid" style="margin-top:25px">
+                    <div class="stat-card-mini" style="flex-direction:column;align-items:stretch">
+                        <h4 style="margin-bottom:10px">Doanh thu theo tuyến</h4>
+                        <canvas id="chartRoute"></canvas>
+                    </div>
+                    <div class="stat-card-mini" style="flex-direction:column;align-items:stretch">
+                        <h4 style="margin-bottom:10px">Vé theo loại ghế</h4>
+                        <canvas id="chartSeat"></canvas>
+                    </div>
+                </div>
+                <div class="stat-card-mini" style="flex-direction:column;align-items:stretch;margin-top:20px">
+                    <h4 style="margin-bottom:10px">Doanh thu theo tháng</h4>
+                    <canvas id="chartMonth"></canvas>
+                </div>
+            </section>
+
+            <!-- Tickets -->
+            <section id="tickets" class="section">
+                <h2>Vé tại cơ sở</h2>
+                <div class="search-box">
+                    <input type="text" id="ticketSearch" placeholder="🔍 Tìm theo mã vé, khách hàng..." oninput="searchBranchTickets()">
+                </div>
+                <table class="table" id="branchTicketsTable">
+                    <thead>
+                        <tr>
+                            <th>Mã vé</th>
+                            <th>Khách hàng</th>
+                            <th>Chuyến tàu</th>
+                            <th>Ghế</th>
+                            <th>Giá vé</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="branchTicketsBody">
+                        <tr><td colspan="6"><div class="empty-state"><h4>Nhấn "Lọc" trong tab Doanh thu để xem dữ liệu</h4></div></td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/ui-utils.js"></script>
+    <script>
+      const BRANCH_ID = '<%= branchId %>';
+      let chartRoute, chartSeat, chartMonth;
+    </script>
+    <script src="/js/branch-dashboard.js"></script>
+</body>
+</html>

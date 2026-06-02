@@ -52,7 +52,7 @@
                         <div class="stat-icon" style="background:#e3f2fd;color:#667eea">💰</div>
                         <div class="stat-info">
                             <h4>Tổng chi tiêu</h4>
-                            <div class="stat-value"><%= (tickets && tickets.filter(t => t.status !== 'cancelled').reduce((sum,t)=>sum+(t.ticketPrice||0),0)).toLocaleString('vi-VN') %>đ</div>
+                            <div class="stat-value"><%= (tickets && tickets.filter(t => t.status !== 'cancelled').reduce((sum,t)=>sum+(t.price||0),0)).toLocaleString('vi-VN') %>đ</div>
                         </div>
                     </div>
                 </div>
@@ -125,7 +125,7 @@
                                 <% const isCancelled = ticket.status === 'cancelled'; %>
                                 <tr data-ticket-id="<%= ticket.id %>"
                                     data-train-id="<%= ticket.IdTrainRide %>"
-                                    data-price="<%= ticket.ticketPrice %>"
+                                    data-price="<%= ticket.price %>"
                                     data-departure-time="<%= new Date(ticket.DepartureTime).toLocaleString('vi-VN') %>"
                                     data-route="<%= ticket.DepartureStation %> → <%= ticket.Destination %>"
                                     data-seat-type="<%= ticket.SeatClass %>"
@@ -134,8 +134,7 @@
                                     <td><%= ticket.DepartureStation %> → <%= ticket.Destination %></td>
                                     <td><%= new Date(ticket.DepartureTime).toLocaleString('vi-VN') %></td>
                                     <td><%= ticket.SeatClass || 'N/A' %> <%= ticket.SeatNumber ? '(' + ticket.SeatNumber + ')' : '' %></td>
-                                    <td><%= (ticket.ticketPrice || 0).toLocaleString('vi-VN') %>đ</td>
-                                    <td><%= ticket.branchName || '-' %></td>
+                                    <td><%= (ticket.price || 0).toLocaleString('vi-VN') %>đ</td>
                                     <td>
                                         <% if (isCancelled) { %>
                                             <span class="badge badge-danger">Đã hủy</span>

@@ -71,14 +71,27 @@ router.post('/login', async (req, res) => {
     if (!isManager) {
       return res.render('login', { role, error: 'Tài khoản không có quyền quản lý!' });
     }
+
+    // Determine session role based on employee.role
+    const isHQ = employee.role.includes('trụ sở');
+    const sessionRole = isHQ ? 'staff_hq' : 'staff_base';
+
+    // Fetch branch info
+    let branchName = employee.idBranch;
+    if (employee.idBranch) {
+      const branchResult = await db.executeQuery('SELECT address FROM Branch WHERE id = @id', { id: employee.idBranch });
+      if (branchResult.length > 0) branchName = branchResult[0].address;
+    }
+
     req.session.user = {
       id: employee.id,
       fullname: employee.fullname,
       phone: employee.phoneNumber,
       salary: employee.salary,
       idBranch: employee.idBranch,
+      branchName: branchName,
       employeeRole: employee.role,
-      role: 'staff_hq'
+      role: sessionRole
     };
     res.redirect('/dashboard');
   } catch (error) {

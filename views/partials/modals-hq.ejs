@@ -1,0 +1,199 @@
+<!-- Modal: Branch Add/Edit -->
+<div id="branchModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="branchModalTitle">Thêm chi nhánh</h3><button class="modal-close" onclick="closeBranchModal()">&times;</button></div>
+        <form id="branchForm" onsubmit="saveBranch(event)" style="padding:20px">
+            <input type="hidden" id="branchEditId">
+            <div class="form-row">
+                <div class="form-group"><label>Mã chi nhánh <span style="color:red">*</span></label><input type="text" id="branchId" required></div>
+                <div class="form-group"><label>SĐT</label><input type="tel" id="branchPhone"></div>
+            </div>
+            <div class="form-group"><label>Địa chỉ <span style="color:red">*</span></label><input type="text" id="branchAddress" required></div>
+            <div style="text-align:right;margin-top:15px"><button type="button" class="btn btn-secondary" onclick="closeBranchModal()">Hủy</button> <button type="submit" class="btn btn-primary">Lưu</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Employee Add/Edit -->
+<div id="employeeModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="empModalTitle">Thêm nhân viên</h3><button class="modal-close" onclick="closeEmployeeModal()">&times;</button></div>
+        <form id="empForm" onsubmit="saveEmployee(event)" style="padding:20px">
+            <input type="hidden" id="empEditId">
+            <div class="form-row">
+                <div class="form-group"><label>Mã NV <span style="color:red">*</span></label><input type="text" id="empId" required></div>
+                <div class="form-group"><label>Họ tên <span style="color:red">*</span></label><input type="text" id="empName" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Chức vụ <span style="color:red">*</span></label>
+                    <select id="empRole" required><option value="Quản lý cơ sở">Quản lý cơ sở</option><option value="Quản lý trụ sở">Quản lý trụ sở</option></select>
+                </div>
+                <div class="form-group"><label>Chi nhánh <span style="color:red">*</span></label>
+                    <select id="empBranch" required>
+                        <option value="">-- Chọn --</option>
+                        <% branches.forEach(b => { %><option value="<%= b.id %>"><%= b.name %></option><% }); %>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>SĐT <span style="color:red">*</span></label><input type="tel" id="empPhone" required></div>
+                <div class="form-group"><label>Lương</label><input type="number" id="empSalary" value="0"></div>
+            </div>
+            <div class="form-row" id="empPasswordRow">
+                <div class="form-group"><label>Mật khẩu <span style="color:red">*</span></label><input type="password" id="empPassword"></div>
+            </div>
+            <div style="text-align:right;margin-top:15px"><button type="button" class="btn btn-secondary" onclick="closeEmployeeModal()">Hủy</button> <button type="submit" class="btn btn-primary">Lưu</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Customer Add/Edit -->
+<div id="customerModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="customerModalTitle">Thêm khách hàng</h3><button class="modal-close" onclick="closeCustomerModal()">&times;</button></div>
+        <form id="customerForm" onsubmit="saveCustomerRow(event)" style="padding:20px">
+            <input type="hidden" id="custId">
+            <div class="form-row">
+                <div class="form-group"><label>Họ tên <span style="color:red">*</span></label><input type="text" id="custName" required></div>
+                <div class="form-group"><label>SĐT <span style="color:red">*</span></label><input type="tel" id="custPhone" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Username <span style="color:red">*</span></label><input type="text" id="custUsername" required></div>
+                <div class="form-group"><label>Mật khẩu <span style="color:red">*</span></label><input type="password" id="custPassword" required></div>
+            </div>
+            <div class="form-group"><label>Địa chỉ</label><input type="text" id="custAddress"></div>
+            <div style="text-align:right;margin-top:15px"><button type="button" class="btn btn-secondary" onclick="closeCustomerModal()">Hủy</button> <button type="submit" class="btn btn-primary">Lưu</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Train Entity Add/Edit -->
+<div id="trainEntityModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="trainEntityModalTitle">Thêm tàu</h3><button class="modal-close" onclick="closeTrainEntityModal()">&times;</button></div>
+        <form id="trainEntityForm" onsubmit="saveTrainEntity(event)" style="padding:20px">
+            <input type="hidden" id="teEditId">
+            <div class="form-row">
+                <div class="form-group"><label>Mã tàu <span style="color:red">*</span></label><input type="text" id="teId" required></div>
+                <div class="form-group"><label>Hãng SX <span style="color:red">*</span></label><input type="text" id="teBrand" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Ghế hạng 1</label><input type="number" id="teClass1" value="30"></div>
+                <div class="form-group"><label>Ghế hạng 2</label><input type="number" id="teClass2" value="120"></div>
+            </div>
+            <div class="form-group"><label>Chi nhánh <span style="color:red">*</span></label>
+                <select id="teBranch" required><option value="">-- Chọn --</option>
+                <% branches.forEach(b => { %><option value="<%= b.id %>"><%= b.name %></option><% }); %>
+                </select>
+            </div>
+            <div style="text-align:right;margin-top:15px"><button type="button" class="btn btn-secondary" onclick="closeTrainEntityModal()">Hủy</button> <button type="submit" class="btn btn-primary">Lưu</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Train Ride Add/Edit -->
+<div id="trainModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="trainModalTitle">Thêm chuyến tàu</h3><button class="modal-close" onclick="closeTrainModal()">&times;</button></div>
+        <form id="trainForm" onsubmit="saveTrainRow(event)" style="padding:20px">
+            <input type="hidden" id="trId">
+            <div class="form-row">
+                <div class="form-group"><label>Mã chuyến <span style="color:red">*</span></label><input type="text" id="trCode" required></div>
+                <div class="form-group"><label>Tàu <span style="color:red">*</span></label>
+                    <select id="trTrainId" required><option value="">-- Chọn tàu --</option>
+                    <% trainEntities.forEach(t => { %><option value="<%= t.id %>"><%= t.id %> - <%= t.ManufacturingBrand %> (<%= t.branchName || t.idBranch %>)</option><% }); %>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Ga đi <span style="color:red">*</span></label>
+                    <select id="trFrom" required><option value="">-- Chọn --</option>
+                    <% stations.forEach(st => { %><option value="<%= st.Name %>"><%= st.Name %></option><% }); %>
+                    </select>
+                </div>
+                <div class="form-group"><label>Ga đến <span style="color:red">*</span></label>
+                    <select id="trTo" required><option value="">-- Chọn --</option>
+                    <% stations.forEach(st => { %><option value="<%= st.Name %>"><%= st.Name %></option><% }); %>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Thời gian khởi hành <span style="color:red">*</span></label><input type="datetime-local" id="trDeparture" required></div>
+                <div class="form-group"><label>Giá vé (VNĐ)</label><input type="number" id="trPrice" value="0"></div>
+            </div>
+            <div style="text-align:right;margin-top:15px"><button type="button" class="btn btn-secondary" onclick="closeTrainModal()">Hủy</button> <button type="submit" class="btn btn-primary">Lưu</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Station Add/Edit -->
+<div id="stationModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="stationModalTitle">Thêm ga tàu</h3><button class="modal-close" onclick="closeStationModal()">&times;</button></div>
+        <form id="stationForm" onsubmit="saveStationRow(event)" style="padding:20px">
+            <input type="hidden" id="stationOldName">
+            <div class="form-row">
+                <div class="form-group"><label>Tên ga <span style="color:red">*</span></label><input type="text" id="stationName" required></div>
+                <div class="form-group"><label>Địa chỉ</label><input type="text" id="stationAddress"></div>
+            </div>
+            <div style="text-align:right;margin-top:15px"><button type="button" class="btn btn-secondary" onclick="closeStationModal()">Hủy</button> <button type="submit" class="btn btn-primary">Lưu</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Customer Detail -->
+<div id="customerDetailModal" class="modal" style="display:none">
+    <div class="modal-content" style="max-width:700px;max-height:90vh;overflow-y:auto">
+        <div class="modal-header"><h3>Chi tiết khách hàng</h3><button class="modal-close" onclick="closeCustomerDetailModal()">&times;</button></div>
+        <div style="padding:20px">
+            <div class="info-card" style="margin-bottom:15px">
+                <p><strong>Mã KH:</strong> <span id="cdId">-</span></p>
+                <p><strong>Họ tên:</strong> <span id="cdName">-</span></p>
+                <p><strong>SĐT:</strong> <span id="cdPhone">-</span></p>
+                <p><strong>Địa chỉ:</strong> <span id="cdAddress">-</span></p>
+                <p><strong>Username:</strong> <span id="cdUsername">-</span></p>
+            </div>
+            <h4>🎫 Vé đã đặt</h4>
+            <table class="table"><thead><tr><th>Mã vé</th><th>Chuyến</th><th>Ghế</th><th>Giá</th><th>Trạng thái</th></tr></thead>
+            <tbody id="cdTicketsBody"><tr><td colspan="5"><div class="empty-state"><h4>Đang tải...</h4></div></td></tr></tbody></table>
+        </div>
+        <div style="text-align:right;padding:0 20px 20px"><button class="btn btn-secondary" onclick="closeCustomerDetailModal()">Đóng</button></div>
+    </div>
+</div>
+
+<!-- Modal: Train Detail -->
+<div id="trainDetailModal" class="modal" style="display:none">
+    <div class="modal-content" style="max-width:700px;max-height:90vh;overflow-y:auto">
+        <div class="modal-header"><h3>Chi tiết chuyến tàu</h3><button class="modal-close" onclick="closeTrainDetailModal()">&times;</button></div>
+        <div style="padding:20px">
+            <div class="info-card" style="margin-bottom:15px">
+                <p><strong>Mã chuyến:</strong> <span id="tdId">-</span></p>
+                <p><strong>Tuyến:</strong> <span id="tdRoute">-</span></p>
+                <p><strong>Khởi hành:</strong> <span id="tdTime">-</span></p>
+                <p><strong>Tàu:</strong> <span id="tdTrain">-</span></p>
+            </div>
+            <h4>🪑 Ghế trống</h4>
+            <div class="stats-grid" style="margin-bottom:15px">
+                <div class="stat-card-mini"><div class="stat-icon" style="background:#e3f2fd;color:#667eea">1️⃣</div><div class="stat-info"><h4>Hạng 1</h4><div class="stat-value" id="tdSeat1">-</div></div></div>
+                <div class="stat-card-mini"><div class="stat-icon" style="background:#f3e5f5;color:#764ba2">2️⃣</div><div class="stat-info"><h4>Hạng 2</h4><div class="stat-value" id="tdSeat2">-</div></div></div>
+            </div>
+            <h4>🎫 Đặt vé cho khách</h4>
+            <form id="bookTicketForm" onsubmit="bookTicketForCustomer(event)">
+                <input type="hidden" id="btTrainRideId">
+                <div class="form-row">
+                    <div class="form-group" style="flex:2"><label>Khách hàng <span style="color:red">*</span></label>
+                        <select id="btCustomer" required><option value="">-- Chọn --</option>
+                        <% customers.forEach(c => { %><option value="<%= c.id %>"><%= c.id %> - <%= c.Name %> (<%= c.phoneNumber %>)</option><% }); %>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Hạng ghế <span style="color:red">*</span></label>
+                        <select id="btSeatClass" required><option value="">-- Chọn --</option><option value="Hạng 1">Hạng 1</option><option value="Hạng 2">Hạng 2</option></select>
+                    </div>
+                    <div class="form-group" style="max-width:100px"><label>Số lượng</label><input type="number" id="btQuantity" min="1" max="10" value="1" required></div>
+                </div>
+                <div style="text-align:right;margin-top:10px"><button type="submit" class="btn btn-success">Đặt vé</button></div>
+            </form>
+        </div>
+        <div style="text-align:right;padding:0 20px 20px"><button class="btn btn-secondary" onclick="closeTrainDetailModal()">Đóng</button></div>
+    </div>
+</div>

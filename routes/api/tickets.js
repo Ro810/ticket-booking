@@ -7,37 +7,16 @@ router.get('/customer/:customerId', async (req, res) => {
   try {
     const customerId = req.params.customerId;
     const result = await db.executeQuery(
-      `SELECT t.id, t.idTrainRide, t.idSeat, t.status, t.idBranch, t.createdAt,
-              tr.DepartureTime, tr.DepartureStation, tr.Destination, s.SeatNumber, s.SeatClass, sp.price as ticketPrice
-       FROM Ticket t
-       JOIN TrainRide tr ON t.idTrainRide = tr.id
-       LEFT JOIN Seat s ON t.idSeat = s.id
-       LEFT JOIN SeatPrice sp ON s.SeatClass = sp.SeatClass
-       WHERE t.idCustomer = @customerId
+      `SELECT tk.id, tk.status, tk.createdAt,
+              tr.DepartureTime, tr.DepartureStation, tr.Destination, tr.price,
+              s.SeatNumber, s.SeatClass
+       FROM Ticket tk
+       JOIN TrainRideSeat trs ON tk.idTrainRideSeat = trs.id
+       JOIN Seat s ON trs.idSeat = s.id
+       JOIN TrainRide tr ON trs.idTrainRide = tr.id
+       WHERE tk.idCustomer = @customerId
        ORDER BY tr.DepartureTime DESC`,
       { customerId }
-    );
-    res.json({ status: 'success', tickets: result });
-  } catch (error) {
-    res.json({ status: 'error', message: error.message });
-  }
-});
-
-// GET /api/tickets/staff/:employeeId
-router.get('/staff/:employeeId', async (req, res) => {
-  try {
-    const employeeId = req.params.employeeId;
-    const result = await db.executeQuery(
-      `SELECT t.id, t.idTrainRide, t.idSeat, t.status, t.idBranch, t.createdAt,
-              tr.DepartureTime, tr.DepartureStation, tr.Destination,
-              c.Name as customerName, c.phoneNumber as customerPhone, s.SeatNumber, s.SeatClass, sp.price as ticketPrice
-       FROM Ticket t
-       JOIN TrainRide tr ON t.idTrainRide = tr.id
-       LEFT JOIN Customer c ON t.idCustomer = c.id
-       LEFT JOIN Seat s ON t.idSeat = s.id
-       LEFT JOIN SeatPrice sp ON s.SeatClass = sp.SeatClass
-       ORDER BY tr.DepartureTime DESC`,
-      { employeeId }
     );
     res.json({ status: 'success', tickets: result });
   } catch (error) {
@@ -63,50 +42,48 @@ router.post('/book', async (req, res) => {
       request.input('seatClass', SeatClass);
       request.input('qty', qty);
       const availResult = await request.query(
-        `SELECT TOP (@qty) trs.idSeat FROM TrainRideSeat trs
+        `SELECT TOP (@qty) trs.id as trsId, trs.idSeat FROM TrainRideSeat trs
          JOIN Seat s ON trs.idSeat = s.id
          WHERE trs.idTrainRide = @rideId AND s.SeatClass = @seatClass AND trs.status = 'AVAILABLE'
-         ORDER BY s.SeatNumber`
+         ORDER BY CAST(s.SeatNumber AS INT)`
       );
       if (availResult.recordset.length < qty) {
         const err = new Error(`Chỉ còn ${availResult.recordset.length} ghế ${SeatClass} cho chuyến này`);
         err.isBusinessError = true;
         throw err;
       }
-      const seatIds = availResult.recordset.map(r => r.idSeat);
+      const trsIds = availResult.recordset.map(r => r.trsId);
 
-      // Book seats via TrainRideSeat
-      const placeholders = seatIds.map((_, i) => `@seatId${i}`).join(',');
-      seatIds.forEach((sid, i) => request.input(`seatId${i}`, sid));
+      // Mark seats as BOOKED
+      const placeholders = trsIds.map((_, i) => `@trsId${i}`).join(',');
+      trsIds.forEach((id, i) => request.input(`trsId${i}`, id));
       await request.query(
-        `UPDATE TrainRideSeat SET status = 'BOOKED' WHERE idTrainRide = @rideId AND idSeat IN (${placeholders})`
+        `UPDATE TrainRideSeat SET status = 'BOOKED' WHERE id IN (${placeholders})`
       );
 
-      const idBranch = req.session.user?.idBranch || null;
-      const values = seatIds.map((sid, i) => `(@ticketId${i}, @IdTrainRide, @IdCustomer, @seatId${i}, 'pending', @idBranch, GETDATE())`).join(',');
-      seatIds.forEach((sid, i) => {
-        request.input(`ticketId${i}`, 'TK' + Date.now() + '_' + i);
-      });
-      request.input('IdTrainRide', IdTrainRide);
+      // Create tickets - each ticket references a TrainRideSeat.id
+      const ticketIds = [];
+      for (let i = 0; i < trsIds.length; i++) {
+        const ticketId = 'TK' + Date.now() + '_' + i;
+        ticketIds.push(ticketId);
+        request.input(`ticketId${i}`, ticketId);
+      }
       request.input('IdCustomer', IdCustomer);
-      request.input('idBranch', idBranch || null);
+      const values = trsIds.map((_, i) => `(@ticketId${i}, @IdCustomer, 'pending', GETDATE(), @trsId${i})`).join(',');
       await request.query(
-        `INSERT INTO Ticket (id, idTrainRide, idCustomer, idSeat, status, idBranch, createdAt)
-         VALUES ${values}`
+        `INSERT INTO Ticket (id, idCustomer, status, createdAt, idTrainRideSeat) VALUES ${values}`
       );
 
-      // Get price from SeatPrice
-      request.input('priceClass', SeatClass);
+      // Get price from TrainRide
       const priceResult = await request.query(
-        'SELECT TOP 1 price FROM SeatPrice WHERE SeatClass = @priceClass'
+        `SELECT TOP 1 price FROM TrainRide WHERE id = @rideId`
       );
       const unitPrice = priceResult.recordset.length > 0 ? priceResult.recordset[0].price : 0;
 
-      const ticketIds = seatIds.map((_, i) => request.parameters[`ticketId${i}`].value);
-      return { ticketIds, seatIds, unitPrice, totalPrice: unitPrice * qty };
+      return { ticketIds, unitPrice, totalPrice: unitPrice * qty };
     });
 
-    res.json({ success: true, ticketIds: result.ticketIds, seatIds: result.seatIds, unitPrice: result.unitPrice, totalPrice: result.totalPrice, quantity: qty, message: `Đặt ${qty} vé thành công! Vui lòng thanh toán.` });
+    res.json({ success: true, ticketIds: result.ticketIds, unitPrice: result.unitPrice, totalPrice: result.totalPrice, quantity: qty, message: `Đặt ${qty} vé thành công! Vui lòng thanh toán.` });
   } catch (error) {
     if (error.isBusinessError) {
       return res.json({ success: false, message: error.message });
@@ -127,14 +104,6 @@ router.post('/pay/:ticketId', async (req, res) => {
   }
 });
 
-function canManageTicket(ticket, user) {
-  if (!user) return false;
-  if (user.role === 'staff_hq') {
-    return !ticket.idBranch || ticket.idBranch === user.idBranch;
-  }
-  return ticket.idCustomer === user.id;
-}
-
 // PUT /api/tickets/:ticketId/status
 router.put('/:ticketId/status', async (req, res) => {
   try {
@@ -144,7 +113,10 @@ router.put('/:ticketId/status', async (req, res) => {
       return res.json({ success: false, message: 'Trạng thái không hợp lệ' });
     }
     const tickets = await db.executeQuery(
-      `SELECT t.*, tr.DepartureTime FROM Ticket t JOIN TrainRide tr ON t.idTrainRide = tr.id WHERE t.id = @ticketId`,
+      `SELECT tk.*, tr.DepartureTime FROM Ticket tk
+       JOIN TrainRideSeat trs ON tk.idTrainRideSeat = trs.id
+       JOIN TrainRide tr ON trs.idTrainRide = tr.id
+       WHERE tk.id = @ticketId`,
       { ticketId }
     );
     if (tickets.length === 0) {
@@ -153,9 +125,6 @@ router.put('/:ticketId/status', async (req, res) => {
     const ticket = tickets[0];
     if (ticket.status === 'cancelled') {
       return res.json({ success: false, message: 'Vé đã bị hủy, không thể thay đổi trạng thái' });
-    }
-    if (!canManageTicket(ticket, req.session.user)) {
-      return res.json({ success: false, message: 'Bạn không có quyền quản lý vé này' });
     }
     await db.executeQuery("UPDATE Ticket SET status = @status WHERE id = @ticketId", { ticketId, status });
     res.json({ success: true, message: 'Cập nhật trạng thái thành công' });
@@ -169,7 +138,11 @@ router.post('/cancel/:ticketId', async (req, res) => {
   try {
     const ticketId = req.params.ticketId;
     const tickets = await db.executeQuery(
-      `SELECT t.*, tr.DepartureTime FROM Ticket t JOIN TrainRide tr ON t.idTrainRide = tr.id WHERE t.id = @ticketId`,
+      `SELECT tk.*, trs.idTrainRide, trs.idSeat, tr.DepartureTime
+       FROM Ticket tk
+       JOIN TrainRideSeat trs ON tk.idTrainRideSeat = trs.id
+       JOIN TrainRide tr ON trs.idTrainRide = tr.id
+       WHERE tk.id = @ticketId`,
       { ticketId }
     );
     if (tickets.length === 0) {
@@ -181,21 +154,13 @@ router.post('/cancel/:ticketId', async (req, res) => {
     }
     const departureTime = new Date(ticket.DepartureTime);
     if (departureTime <= new Date()) {
-      return res.json({ success: false, message: 'Vé đã hết hạn hoặc chuyến tàu đã khởi hành, không thể hủy' });
-    }
-    if (!canManageTicket(ticket, req.session.user)) {
-      return res.json({ success: false, message: 'Bạn không có quyền hủy vé này' });
+      return res.json({ success: false, message: 'Chuyến tàu đã khởi hành, không thể hủy' });
     }
 
     await db.executeTransaction(async (request) => {
       // Free seat in TrainRideSeat
-      if (ticket.idSeat && ticket.idTrainRide) {
-        request.input('rideId', ticket.idTrainRide);
-        request.input('seatId', ticket.idSeat);
-        await request.query(
-          "UPDATE TrainRideSeat SET status = 'AVAILABLE' WHERE idTrainRide = @rideId AND idSeat = @seatId"
-        );
-      }
+      request.input('trsId', ticket.idTrainRideSeat);
+      await request.query("UPDATE TrainRideSeat SET status = 'AVAILABLE' WHERE id = @trsId");
       request.input('cancelTicketId', ticketId);
       await request.query("UPDATE Ticket SET status = 'cancelled' WHERE id = @cancelTicketId");
     });

@@ -8,24 +8,27 @@ router.get('/dashboard', async (req, res) => {
   }
   try {
     const role = req.session.user.role;
+
+    // ===== PASSENGER =====
     if (role === 'passenger') {
       const customerId = req.session.user.id;
       const tickets = await db.executeQuery(
-        `SELECT t.id, t.idTrainRide, t.idSeat, t.status, t.idBranch, t.createdAt,
-                tr.DepartureTime, tr.DepartureStation, tr.Destination, s.SeatNumber, s.SeatClass, sp.price as ticketPrice, b.address as branchName
-         FROM Ticket t
-         JOIN TrainRide tr ON t.idTrainRide = tr.id
-         LEFT JOIN Seat s ON t.idSeat = s.id
-         LEFT JOIN SeatPrice sp ON s.SeatClass = sp.SeatClass
-         LEFT JOIN Branch b ON t.idBranch = b.id
-         WHERE t.idCustomer = @customerId`,
+        `SELECT tk.id, tk.status, tk.createdAt,
+                tr.DepartureTime, tr.DepartureStation, tr.Destination, tr.price,
+                s.SeatNumber, s.SeatClass
+         FROM Ticket tk
+         JOIN TrainRideSeat trs ON tk.idTrainRideSeat = trs.id
+         JOIN Seat s ON trs.idSeat = s.id
+         JOIN TrainRide tr ON trs.idTrainRide = tr.id
+         WHERE tk.idCustomer = @customerId
+         ORDER BY tr.DepartureTime DESC`,
         { customerId }
       );
       const stations = await db.executeQuery(`SELECT Name FROM Station ORDER BY Name`);
       const trains = await db.executeQuery(
         `SELECT tr.*, t.ManufacturingBrand,
-          (SELECT COUNT(*) FROM TrainRideSeat trs JOIN Seat s ON trs.idSeat=s.id WHERE trs.idTrainRide=tr.id AND s.SeatClass='Hạng 1' AND trs.status='AVAILABLE') as availableClass1,
-          (SELECT COUNT(*) FROM TrainRideSeat trs JOIN Seat s ON trs.idSeat=s.id WHERE trs.idTrainRide=tr.id AND s.SeatClass='Hạng 2' AND trs.status='AVAILABLE') as availableClass2
+          (SELECT COUNT(*) FROM TrainRideSeat trs JOIN Seat s ON trs.idSeat=s.id WHERE trs.idTrainRide=tr.id AND s.SeatClass=N'Hạng 1' AND trs.status='AVAILABLE') as availableClass1,
+          (SELECT COUNT(*) FROM TrainRideSeat trs JOIN Seat s ON trs.idSeat=s.id WHERE trs.idTrainRide=tr.id AND s.SeatClass=N'Hạng 2' AND trs.status='AVAILABLE') as availableClass2
          FROM TrainRide tr
          LEFT JOIN Train t ON tr.idTrain = t.id
          ORDER BY tr.DepartureTime DESC`
@@ -37,64 +40,89 @@ router.get('/dashboard', async (req, res) => {
         stations: stations || []
       });
     }
+
+    // ===== STAFF_HQ (Quản lý trụ sở) =====
     if (role === 'staff_hq') {
       const branchFilter = req.query.branch || 'all';
       const customers = await db.executeQuery('SELECT id, Name, phoneNumber, Address FROM Customer');
       const stations = await db.executeQuery('SELECT Name, Address FROM Station ORDER BY Name');
-      const trains = await db.executeQuery(`SELECT tr.*, t.ManufacturingBrand FROM TrainRide tr LEFT JOIN Train t ON tr.idTrain = t.id ORDER BY tr.DepartureTime DESC`);
-      const branches = await db.executeQuery(`SELECT id, address as name FROM Branch ORDER BY address`);
+      const trainRides = await db.executeQuery(
+        `SELECT tr.*, t.ManufacturingBrand FROM TrainRide tr LEFT JOIN Train t ON tr.idTrain = t.id ORDER BY tr.DepartureTime DESC`
+      );
+      const branches = await db.executeQuery(`SELECT id, address as name, phoneNumber FROM Branch ORDER BY id`);
+      const trainEntities = await db.executeQuery(
+        `SELECT t.id, t.ManufacturingBrand, t.class1Seats, t.class2Seats, t.idBranch, b.address as branchName
+         FROM Train t LEFT JOIN Branch b ON t.idBranch = b.id ORDER BY t.id`
+      );
+      const employees = await db.executeQuery(
+        `SELECT e.id, e.fullname, e.salary, e.role, e.phoneNumber, e.idBranch, b.address as branchName
+         FROM Employee e LEFT JOIN Branch b ON e.idBranch = b.id ORDER BY e.id`
+      );
 
-      let ticketWhere = '';
-      let ticketParams = {};
-      let statsWhere = '';
+      // Stats with branch filter
+      let statsFilter = '';
       let statsParams = {};
       if (branchFilter !== 'all') {
-        ticketWhere = ' AND t.idBranch = @branchId';
-        ticketParams.branchId = branchFilter;
-        statsWhere = " AND t.idBranch = @branchId";
+        statsFilter = ' AND t.idBranch = @branchId';
         statsParams.branchId = branchFilter;
       }
 
-      const tickets = await db.executeQuery(
-        `SELECT t.id, t.idSeat, t.status, t.idTrainRide, t.idCustomer, t.idBranch, t.createdAt,
-                tr.DepartureTime, tr.DepartureStation, tr.Destination,
-                c.Name as customerName, b.address as branchName, s.SeatNumber, s.SeatClass, sp.price as ticketPrice
-         FROM Ticket t
-         JOIN TrainRide tr ON t.idTrainRide = tr.id
-         LEFT JOIN Customer c ON t.idCustomer = c.id
-         LEFT JOIN Branch b ON t.idBranch = b.id
-         LEFT JOIN Seat s ON t.idSeat = s.id
-         LEFT JOIN SeatPrice sp ON s.SeatClass = sp.SeatClass
-         WHERE 1=1 ${ticketWhere}
-         ORDER BY tr.DepartureTime DESC`,
-        ticketParams
-      );
-      const totalTickets = await db.executeQuery(`SELECT COUNT(*) as cnt FROM Ticket t WHERE t.status != 'cancelled' ${statsWhere}`, statsParams);
+      const baseJoin = `
+        FROM Ticket tk
+        JOIN TrainRideSeat trs ON tk.idTrainRideSeat = trs.id
+        JOIN Seat s ON trs.idSeat = s.id
+        JOIN Train t ON s.idTrain = t.id
+        JOIN TrainRide tr ON trs.idTrainRide = tr.id
+        WHERE tk.status != 'cancelled' ${statsFilter}
+      `;
+
+      const totalTickets = await db.executeQuery(`SELECT COUNT(*) as cnt ${baseJoin}`, statsParams);
       const totalCustomers = await db.executeQuery(`SELECT COUNT(*) as cnt FROM Customer`);
-      const totalRevenue = await db.executeQuery(
-        `SELECT SUM(sp.price) as revenue FROM Ticket t JOIN Seat s ON t.idSeat = s.id JOIN SeatPrice sp ON s.SeatClass = sp.SeatClass WHERE t.status != 'cancelled' ${statsWhere}`, statsParams
-      );
+      const totalRevenue = await db.executeQuery(`SELECT ISNULL(SUM(tr.price), 0) as revenue ${baseJoin}`, statsParams);
       const branchStats = await db.executeQuery(
-        `SELECT b.address as branchName, COUNT(t.id) as ticketCount
-         FROM Ticket t
-         LEFT JOIN Branch b ON t.idBranch = b.id
-         WHERE t.status != 'cancelled' ${statsWhere}
+        `SELECT b.address as branchName, COUNT(tk.id) as ticketCount, ISNULL(SUM(tr.price), 0) as revenue
+         ${baseJoin.replace('WHERE', 'LEFT JOIN Branch b ON t.idBranch = b.id WHERE')}
          GROUP BY b.address`,
         statsParams
       );
-      const chartBySeat = await db.executeQuery(`SELECT s.SeatClass as SeatType, COUNT(*) as cnt FROM Ticket t JOIN Seat s ON t.idSeat = s.id WHERE t.status != 'cancelled' ${statsWhere} GROUP BY s.SeatClass`, statsParams);
+      const chartBySeat = await db.executeQuery(`SELECT s.SeatClass as SeatType, COUNT(*) as cnt ${baseJoin} GROUP BY s.SeatClass`, statsParams);
       const chartByMonth = await db.executeQuery(
-        `SELECT FORMAT(tr.DepartureTime, 'yyyy-MM') as month, COUNT(*) as cnt
-         FROM Ticket t JOIN TrainRide tr ON t.idTrainRide = tr.id WHERE t.status != 'cancelled' ${statsWhere}
+        `SELECT FORMAT(tr.DepartureTime, 'yyyy-MM') as month, COUNT(*) as cnt ${baseJoin}
          GROUP BY FORMAT(tr.DepartureTime, 'yyyy-MM') ORDER BY month`,
         statsParams
       );
+
+      // Tickets list
+      let ticketFilter = '';
+      let ticketParams = {};
+      if (branchFilter !== 'all') {
+        ticketFilter = ' AND t2.idBranch = @branchId';
+        ticketParams.branchId = branchFilter;
+      }
+      const tickets = await db.executeQuery(
+        `SELECT tk.id, tk.status, tk.createdAt, tk.idCustomer,
+                tr.DepartureTime, tr.DepartureStation, tr.Destination, tr.price,
+                c.Name as customerName, s.SeatNumber, s.SeatClass, b.address as branchName
+         FROM Ticket tk
+         JOIN TrainRideSeat trs ON tk.idTrainRideSeat = trs.id
+         JOIN Seat s ON trs.idSeat = s.id
+         JOIN Train t2 ON s.idTrain = t2.id
+         JOIN TrainRide tr ON trs.idTrainRide = tr.id
+         LEFT JOIN Customer c ON tk.idCustomer = c.id
+         LEFT JOIN Branch b ON t2.idBranch = b.id
+         WHERE 1=1 ${ticketFilter}
+         ORDER BY tr.DepartureTime DESC`,
+        ticketParams
+      );
+
       return res.render('dashboard-staff-hq', {
         user: req.session.user,
         customers: customers || [],
         stations: stations || [],
-        trains: trains || [],
+        trainRides: trainRides || [],
+        trainEntities: trainEntities || [],
         branches: branches || [],
+        employees: employees || [],
         branchFilter,
         tickets: tickets || [],
         stats: {
@@ -109,21 +137,35 @@ router.get('/dashboard', async (req, res) => {
         }
       });
     }
+
+    // ===== STAFF_BASE (Quản lý cơ sở) =====
+    if (role === 'staff_base') {
+      const branchId = req.session.user.idBranch;
+      const stations = await db.executeQuery('SELECT Name FROM Station ORDER BY Name');
+      return res.render('dashboard-staff-base', {
+        user: req.session.user,
+        branchId: branchId,
+        stations: stations || []
+      });
+    }
+
   } catch (error) {
     console.error('Lỗi dashboard:', error.message);
     const role = req.session.user?.role;
-    const fallbackStats = { totalTickets: 0, totalCustomers: 0, totalRevenue: 0 };
-    const fallbackData = {
-      user: req.session.user,
-      trains: [], customers: [], tickets: [],
-      stats: fallbackStats,
-      chartData: { byRoute: [], bySeat: [], byMonth: [] },
-      branchStats: [],
-      branches: [],
-      branchFilter: 'all'
-    };
     if (role === 'staff_hq') {
-      return res.render('dashboard-staff-hq', fallbackData);
+      return res.render('dashboard-staff-hq', {
+        user: req.session.user,
+        trains: [], trainRides: [], trainEntities: [], customers: [], tickets: [],
+        employees: [], branches: [], stations: [],
+        stats: { totalTickets: 0, totalCustomers: 0, totalRevenue: 0 },
+        chartData: { bySeat: [], byMonth: [] },
+        branchStats: [], branchFilter: 'all'
+      });
+    }
+    if (role === 'staff_base') {
+      return res.render('dashboard-staff-base', {
+        user: req.session.user, branchId: req.session.user.idBranch, stations: []
+      });
     }
     res.render('dashboard-passenger', {
       user: req.session.user,

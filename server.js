@@ -36,39 +36,14 @@ app.use('/api/tickets', require('./routes/api/tickets'));
 app.use('/api/trains', require('./routes/api/trains'));
 app.use('/api/stats', require('./routes/api/stats'));
 app.use('/api/stations', require('./routes/api/stations'));
-
-// Legacy passenger APIs (keep for backward compat)
-app.post('/api/customer/:customerId', async (req, res) => {
-  try {
-    const customerId = req.params.customerId;
-    const { name, phoneNumber, address } = req.body;
-    await db.executeQuery(
-      'UPDATE Customer SET Name = @name, phoneNumber = @phoneNumber, Address = @address WHERE id = @id',
-      { id: customerId, name, phoneNumber, address }
-    );
-    res.json({ status: 'success', message: 'Cập nhật thành công' });
-  } catch (error) {
-    res.json({ status: 'error', message: error.message });
-  }
-});
+app.use('/api/employees', require('./routes/api/employees'));
+app.use('/api/branches', require('./routes/api/branches'));
 
 // Debug endpoints
 app.get('/api/test-db', async (req, res) => {
   try {
     const result = await db.executeQuery(`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'`);
     res.json({ status: 'success', tables: result });
-  } catch (error) {
-    res.json({ status: 'error', message: error.message });
-  }
-});
-
-app.get('/api/table-schema/:tableName', async (req, res) => {
-  try {
-    const result = await db.executeQuery(
-      `SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @tableName`,
-      { tableName: req.params.tableName }
-    );
-    res.json({ status: 'success', schema: result });
   } catch (error) {
     res.json({ status: 'error', message: error.message });
   }
@@ -81,7 +56,7 @@ setInterval(async () => {
     await db.executeQuery(`
       UPDATE trs SET status = 'AVAILABLE'
       FROM TrainRideSeat trs
-      INNER JOIN Ticket t ON trs.idTrainRide = t.idTrainRide AND trs.idSeat = t.idSeat
+      INNER JOIN Ticket t ON trs.id = t.idTrainRideSeat
       WHERE t.status = 'pending' AND (t.createdAt IS NULL OR DATEDIFF(MINUTE, t.createdAt, GETDATE()) >= 15)
     `);
     // Then cancel tickets
