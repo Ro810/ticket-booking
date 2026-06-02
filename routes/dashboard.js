@@ -14,6 +14,7 @@ router.get('/dashboard', async (req, res) => {
       const customerId = req.session.user.id;
       const tickets = await db.executeQuery(
         `SELECT tk.id, tk.status, tk.createdAt,
+                DATEDIFF(SECOND, tk.createdAt, GETDATE()) as ageInSeconds,
                 tr.DepartureTime, tr.DepartureStation, tr.Destination, tr.price,
                 s.SeatNumber, s.SeatClass
          FROM Ticket tk

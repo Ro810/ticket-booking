@@ -1168,3 +1168,68 @@ body {
 .status-dot.active { background: #28a745; }
 .status-dot.pending { background: #ffc107; }
 .status-dot.cancelled { background: #dc3545; }
+
+/* Interactive Seat Map Styles */
+.seat-item {
+    padding: 8px 4px;
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.seat-item:hover:not(.booked) {
+    background: #e8f0fe;
+    border-color: #667eea;
+}
+.seat-item.selected {
+    background: #667eea !important;
+    color: #ffffff !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+}
+.seat-item.booked {
+    background: #e0e0e0 !important;
+    color: #999999 !important;
+    border-color: #cccccc !important;
+    cursor: not-allowed !important;
+}
+
+.coach-tab {
+    padding: 6px 14px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.coach-tab:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+.coach-tab.active {
+    background: #667eea;
+    color: #ffffff;
+    border-color: #667eea;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.25);
+}
+
+.seat-aisle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    user-select: none;
+    height: 100%;
+}

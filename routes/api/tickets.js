@@ -27,9 +27,9 @@ router.get('/customer/:customerId', async (req, res) => {
 // POST /api/tickets/book
 router.post('/book', async (req, res) => {
   try {
-    const { IdTrainRide, IdCustomer, SeatClass, quantity } = req.body;
-    const qty = parseInt(quantity, 10) || 1;
-    if (!IdTrainRide || !IdCustomer || !SeatClass) {
+    const { IdTrainRide, IdCustomer, SeatClass, quantity, trsIds } = req.body;
+    const qty = (Array.isArray(trsIds) && trsIds.length > 0) ? trsIds.length : (parseInt(quantity, 10) || 1);
+    if (!IdTrainRide || !IdCustomer) {
       return res.json({ success: false, message: 'Vui lòng nhập đầy đủ thông tin' });
     }
     if (qty < 1 || qty > 10) {
@@ -37,50 +37,86 @@ router.post('/book', async (req, res) => {
     }
 
     const result = await db.executeTransaction(async (request) => {
-      // Find available seats for this ride and class
-      request.input('rideId', IdTrainRide);
-      request.input('seatClass', SeatClass);
-      request.input('qty', qty);
-      const availResult = await request.query(
-        `SELECT TOP (@qty) trs.id as trsId, trs.idSeat FROM TrainRideSeat trs
-         JOIN Seat s ON trs.idSeat = s.id
-         WHERE trs.idTrainRide = @rideId AND s.SeatClass = @seatClass AND trs.status = 'AVAILABLE'
-         ORDER BY CAST(s.SeatNumber AS INT)`
-      );
-      if (availResult.recordset.length < qty) {
-        const err = new Error(`Chỉ còn ${availResult.recordset.length} ghế ${SeatClass} cho chuyến này`);
-        err.isBusinessError = true;
-        throw err;
+      let finalTrsIds = [];
+
+      if (Array.isArray(trsIds) && trsIds.length > 0) {
+        // Specific seat selection
+        request.input('rideId', IdTrainRide);
+        const placeholders = trsIds.map((_, i) => `@trsId${i}`).join(',');
+        trsIds.forEach((id, i) => request.input(`trsId${i}`, id));
+        
+        const checkResult = await request.query(
+          `SELECT trs.id, trs.status, s.SeatClass FROM TrainRideSeat trs
+           JOIN Seat s ON trs.idSeat = s.id
+           WHERE trs.id IN (${placeholders}) AND trs.idTrainRide = @rideId`
+        );
+        const foundSeats = checkResult.recordset;
+        const unavailable = foundSeats.filter(r => r.status !== 'AVAILABLE');
+        if (foundSeats.length < qty || unavailable.length > 0) {
+          const err = new Error('Một hoặc nhiều ghế bạn chọn đã được người khác đặt. Vui lòng chọn ghế khác!');
+          err.isBusinessError = true;
+          throw err;
+        }
+        finalTrsIds = trsIds;
+      } else {
+        // Find available seats for this ride and class
+        request.input('rideId', IdTrainRide);
+        request.input('seatClass', SeatClass);
+        request.input('qty', qty);
+        const availResult = await request.query(
+          `SELECT TOP (@qty) trs.id as trsId, trs.idSeat FROM TrainRideSeat trs
+           JOIN Seat s ON trs.idSeat = s.id
+           WHERE trs.idTrainRide = @rideId AND s.SeatClass = @seatClass AND trs.status = 'AVAILABLE'
+           ORDER BY CAST(s.SeatNumber AS INT)`
+        );
+        if (availResult.recordset.length < qty) {
+          const err = new Error(`Chỉ còn ${availResult.recordset.length} ghế ${SeatClass} cho chuyến này`);
+          err.isBusinessError = true;
+          throw err;
+        }
+        finalTrsIds = availResult.recordset.map(r => r.trsId);
       }
-      const trsIds = availResult.recordset.map(r => r.trsId);
 
       // Mark seats as BOOKED
-      const placeholders = trsIds.map((_, i) => `@trsId${i}`).join(',');
-      trsIds.forEach((id, i) => request.input(`trsId${i}`, id));
+      const placeholdersUpdate = finalTrsIds.map((_, i) => `@trsIdUp${i}`).join(',');
+      finalTrsIds.forEach((id, i) => request.input(`trsIdUp${i}`, id));
       await request.query(
-        `UPDATE TrainRideSeat SET status = 'BOOKED' WHERE id IN (${placeholders})`
+        `UPDATE TrainRideSeat SET status = 'BOOKED' WHERE id IN (${placeholdersUpdate})`
       );
 
-      // Create tickets - each ticket references a TrainRideSeat.id
+      // Create tickets
       const ticketIds = [];
-      for (let i = 0; i < trsIds.length; i++) {
+      for (let i = 0; i < finalTrsIds.length; i++) {
         const ticketId = 'TK' + Date.now() + '_' + i;
         ticketIds.push(ticketId);
         request.input(`ticketId${i}`, ticketId);
       }
       request.input('IdCustomer', IdCustomer);
-      const values = trsIds.map((_, i) => `(@ticketId${i}, @IdCustomer, 'pending', GETDATE(), @trsId${i})`).join(',');
+      const values = finalTrsIds.map((_, i) => `(@ticketId${i}, @IdCustomer, 'pending', GETDATE(), @trsIdUp${i})`).join(',');
       await request.query(
         `INSERT INTO Ticket (id, idCustomer, status, createdAt, idTrainRideSeat) VALUES ${values}`
       );
 
       // Get price from TrainRide
+      request.input('rideIdPrice', IdTrainRide);
       const priceResult = await request.query(
-        `SELECT TOP 1 price FROM TrainRide WHERE id = @rideId`
+        `SELECT TOP 1 price FROM TrainRide WHERE id = @rideIdPrice`
       );
       const unitPrice = priceResult.recordset.length > 0 ? priceResult.recordset[0].price : 0;
 
-      return { ticketIds, unitPrice, totalPrice: unitPrice * qty };
+      // Get seat classes of finalTrsIds to calculate pricing multiplier
+      const seatDetails = await request.query(
+        `SELECT trs.id, s.SeatClass FROM TrainRideSeat trs
+         JOIN Seat s ON trs.idSeat = s.id
+         WHERE trs.id IN (${placeholdersUpdate})`
+      );
+      let totalPrice = 0;
+      seatDetails.recordset.forEach(seat => {
+        const mult = seat.SeatClass === 'Hạng 1' ? 1.4 : 1.0;
+        totalPrice += unitPrice * mult;
+      });
+
+      return { ticketIds, unitPrice, totalPrice };
     });
 
     res.json({ success: true, ticketIds: result.ticketIds, unitPrice: result.unitPrice, totalPrice: result.totalPrice, quantity: qty, message: `Đặt ${qty} vé thành công! Vui lòng thanh toán.` });
@@ -151,6 +187,9 @@ router.post('/cancel/:ticketId', async (req, res) => {
     const ticket = tickets[0];
     if (ticket.status === 'cancelled') {
       return res.json({ success: false, message: 'Vé đã được hủy trước đó' });
+    }
+    if (ticket.status === 'paid') {
+      return res.json({ success: false, message: 'Vé đã thanh toán, không thể hủy' });
     }
     const departureTime = new Date(ticket.DepartureTime);
     if (departureTime <= new Date()) {

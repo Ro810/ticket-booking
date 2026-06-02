@@ -140,6 +140,9 @@
                                             <span class="badge badge-danger">Đã hủy</span>
                                         <% } else if (ticket.status === 'pending') { %>
                                             <span class="badge badge-warning">Chờ thanh toán</span>
+                                            <div class="pending-countdown" data-remaining-sec="<%= Math.max(0, 600 - (ticket.ageInSeconds || 0)) %>" style="font-size:0.75rem; color:#dc3545; font-weight:600; margin-top:4px; display:flex; align-items:center; gap:3px;">
+                                                ⏱️ Hủy sau: <span class="timer-countdown">10:00</span>
+                                            </div>
                                         <% } else if (isFuture) { %>
                                             <span class="badge badge-info">Sắp khởi hành</span>
                                         <% } else { %>
@@ -151,8 +154,8 @@
                                         <% if (!isCancelled && isFuture) { %>
                                             <% if (ticket.status === 'pending') { %>
                                                 <button class="btn-small btn-success" onclick="payMyTicket('<%= ticket.id %>')">Thanh toán</button>
+                                                <button class="btn-small btn-danger" onclick="cancelMyTicket('<%= ticket.id %>')">Hủy</button>
                                             <% } %>
-                                            <button class="btn-small btn-danger" onclick="cancelMyTicket('<%= ticket.id %>')">Hủy</button>
                                         <% } %>
                                     </td>
                                 </tr>
@@ -227,7 +230,7 @@
                                     <td><%= new Date(train.DepartureTime).toLocaleString('vi-VN') %></td>
                                     <td><%= train.availableClass1 || 0 %></td>
                                     <td><%= train.availableClass2 || 0 %></td>
-                                    <td><button class="btn btn-sm btn-success" onclick="bookTicket('<%= train.id %>', '<%= train.DepartureStation %> → <%= train.Destination %>', '<%= new Date(train.DepartureTime).toLocaleString('vi-VN') %>', <%= train.availableClass1 || 0 %>, <%= train.availableClass2 || 0 %>)" <%= (train.availableClass1 || 0) + (train.availableClass2 || 0) === 0 ? 'disabled' : '' %>>Đặt vé</button></td>
+                                    <td><button class="btn btn-sm btn-success" onclick="bookTicket('<%= train.id %>', '<%= train.DepartureStation %> → <%= train.Destination %>', '<%= new Date(train.DepartureTime).toLocaleString('vi-VN') %>', <%= train.availableClass1 || 0 %>, <%= train.availableClass2 || 0 %>, <%= train.price || 0 %>)" <%= (train.availableClass1 || 0) + (train.availableClass2 || 0) === 0 ? 'disabled' : '' %>>Đặt vé</button></td>
                                 </tr>
                             <% }); %>
                         <% } else { %>
@@ -266,20 +269,45 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Loại ghế <span style="color:red">*</span></label>
-                        <select id="bookSeatType" required onchange="updateBookPrice()">
+                        <select id="bookSeatType" required onchange="onSeatTypeChange()">
                             <option value="">-- Chọn loại ghế --</option>
-                            <option value="Hạng 1">Hạng 1 (Cao cấp)</option>
+                            <option value="Hạng 1">Hạng 1 (Cao cấp - x1.4)</option>
                             <option value="Hạng 2">Hạng 2 (Tiêu chuẩn)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Số lượng <span style="color:red">*</span></label>
-                        <input type="number" id="bookQuantity" min="1" max="10" value="1" required onchange="updateBookPrice()">
+                        <label>Số lượng ghế chọn</label>
+                        <input type="number" id="bookQuantity" value="0" readonly style="background:#e9ecef; cursor:not-allowed;">
                     </div>
                 </div>
-                <div class="form-row">
+
+                <!-- Seat Grid Container -->
+                <div id="seatSelectionArea" style="display:none; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+                    <label style="font-weight:600; margin-bottom:8px; display:block; color:#333;">🗺️ Chọn vị trí ghế ngồi theo toa (Tối đa 10 ghế):</label>
+                    
+                    <!-- Coach selector tabs -->
+                    <div id="coachTabsContainer" style="display:flex; gap:8px; margin-bottom:12px; justify-content:center; flex-wrap:wrap;">
+                        <!-- Generated Dynamically -->
+                    </div>
+
+                    <div class="seat-legend" style="display:flex; gap:15px; margin-bottom:12px; font-size:0.85rem; justify-content:center;">
+                        <span style="display:flex; align-items:center; gap:5px;"><span style="width:14px; height:14px; background:#fff; border:1px solid #ccc; display:inline-block; border-radius:3px;"></span> Trống</span>
+                        <span style="display:flex; align-items:center; gap:5px;"><span style="width:14px; height:14px; background:#667eea; border:1px solid #667eea; display:inline-block; border-radius:3px;"></span> Đang chọn</span>
+                        <span style="display:flex; align-items:center; gap:5px;"><span style="width:14px; height:14px; background:#e0e0e0; border:1px solid #ccc; display:inline-block; border-radius:3px;"></span> Đã đặt</span>
+                    </div>
+
+                    <div id="seatGridContainer" style="display:grid; grid-template-columns: repeat(2, 1fr) 50px repeat(2, 1fr); gap:8px; max-height:280px; overflow-y:auto; padding:12px; background:#f8f9fa; border-radius:6px; border:1px solid #e2e8f0; align-items:center; justify-items:stretch;">
+                        <!-- Generated Dynamically -->
+                    </div>
+                    <div style="margin-top:10px; font-size:0.9rem; text-align:right;">
+                        <span style="color:#666;">Danh sách ghế chọn: </span>
+                        <span id="selectedSeatsLabel" style="font-weight:bold; color:#667eea;">Chưa chọn</span>
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-top:15px;">
                     <div class="form-group">
-                        <label>Giá vé (dự kiến)</label>
+                        <label>Giá vé (tạm tính)</label>
                         <input type="text" id="bookPrice" readonly>
                     </div>
                 </div>

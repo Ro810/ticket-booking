@@ -49,7 +49,7 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
-// Auto-cancel pending tickets older than 15 minutes
+// Auto-cancel pending tickets older than 10 minutes
 setInterval(async () => {
   try {
     // Release seats first
@@ -57,17 +57,17 @@ setInterval(async () => {
       UPDATE trs SET status = 'AVAILABLE'
       FROM TrainRideSeat trs
       INNER JOIN Ticket t ON trs.id = t.idTrainRideSeat
-      WHERE t.status = 'pending' AND (t.createdAt IS NULL OR DATEDIFF(MINUTE, t.createdAt, GETDATE()) >= 15)
+      WHERE t.status = 'pending' AND (t.createdAt IS NULL OR DATEDIFF(MINUTE, t.createdAt, GETDATE()) >= 10)
     `);
     // Then cancel tickets
     await db.executeQuery(`
       UPDATE Ticket SET status = 'cancelled'
-      WHERE status = 'pending' AND (createdAt IS NULL OR DATEDIFF(MINUTE, createdAt, GETDATE()) >= 15)
+      WHERE status = 'pending' AND (createdAt IS NULL OR DATEDIFF(MINUTE, createdAt, GETDATE()) >= 10)
     `);
   } catch (error) {
     console.error('✗ Auto-cancel error:', error.message);
   }
-}, 60000);
+}, 30000);
 
 app.listen(PORT, () => {
   console.log(`✓ Server đang chạy tại http://localhost:${PORT}`);
