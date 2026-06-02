@@ -49,6 +49,16 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
+// DEBUG: return Employee table columns (local debugging only)
+app.get('/debug/employee-columns', async (req, res) => {
+  try {
+    const cols = await db.executeQuery("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Employee'");
+    res.json({ status: 'success', columns: cols });
+  } catch (error) {
+    res.json({ status: 'error', message: error.message });
+  }
+});
+
 // Auto-cancel pending tickets older than 10 minutes
 setInterval(async () => {
   try {
