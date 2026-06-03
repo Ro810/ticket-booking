@@ -40,13 +40,13 @@ router.post('/book', async (req, res) => {
       let finalTrsIds = [];
 
       if (Array.isArray(trsIds) && trsIds.length > 0) {
-        // Specific seat selection
+        // Specific seat selection — use UPDLOCK, ROWLOCK to prevent race conditions
         request.input('rideId', IdTrainRide);
         const placeholders = trsIds.map((_, i) => `@trsId${i}`).join(',');
         trsIds.forEach((id, i) => request.input(`trsId${i}`, id));
         
         const checkResult = await request.query(
-          `SELECT trs.id, trs.status, s.SeatClass FROM TrainRideSeat trs
+          `SELECT trs.id, trs.status, s.SeatClass FROM TrainRideSeat trs WITH (UPDLOCK, ROWLOCK)
            JOIN Seat s ON trs.idSeat = s.id
            WHERE trs.id IN (${placeholders}) AND trs.idTrainRide = @rideId`
         );
@@ -59,12 +59,12 @@ router.post('/book', async (req, res) => {
         }
         finalTrsIds = trsIds;
       } else {
-        // Find available seats for this ride and class
+        // Find available seats — use UPDLOCK, ROWLOCK to prevent race conditions
         request.input('rideId', IdTrainRide);
         request.input('seatClass', SeatClass);
         request.input('qty', qty);
         const availResult = await request.query(
-          `SELECT TOP (@qty) trs.id as trsId, trs.idSeat FROM TrainRideSeat trs
+          `SELECT TOP (@qty) trs.id as trsId, trs.idSeat FROM TrainRideSeat trs WITH (UPDLOCK, ROWLOCK)
            JOIN Seat s ON trs.idSeat = s.id
            WHERE trs.idTrainRide = @rideId AND s.SeatClass = @seatClass AND trs.status = 'AVAILABLE'
            ORDER BY CAST(s.SeatNumber AS INT)`
@@ -207,6 +207,221 @@ router.post('/cancel/:ticketId', async (req, res) => {
     res.json({ success: true, message: 'Hủy vé thành công' });
   } catch (error) {
     res.json({ success: false, message: 'Lỗi khi hủy vé: ' + error.message });
+  }
+});
+
+// POST /api/tickets/demo/concurrent-book
+// Simulates two users booking the same seat at the same time
+router.post('/demo/concurrent-book', async (req, res) => {
+  try {
+    const { IdTrainRide, trsId, customerA, customerB, delayMs } = req.body;
+    if (!IdTrainRide || !trsId || !customerA || !customerB) {
+      return res.json({ success: false, message: 'Thiếu thông tin' });
+    }
+    const delay = parseInt(delayMs, 10) || 0;
+
+    // First, ensure the seat is AVAILABLE for this demo
+    await db.executeQuery(
+      `UPDATE TrainRideSeat SET status = 'AVAILABLE' WHERE id = @trsId`,
+      { trsId }
+    );
+    // Also clean up any existing demo tickets for this seat
+    await db.executeQuery(
+      `DELETE FROM Ticket WHERE idTrainRideSeat = @trsId`,
+      { trsId }
+    );
+
+    const bookOneSeat = async (customerId, label) => {
+      const startTime = Date.now();
+      try {
+        const result = await db.executeTransaction(async (request) => {
+          // Check seat with lock
+          request.input('rideId', IdTrainRide);
+          request.input('trsId', trsId);
+          const checkResult = await request.query(
+            `SELECT trs.id, trs.status, s.SeatClass, s.SeatNumber
+             FROM TrainRideSeat trs WITH (UPDLOCK, ROWLOCK)
+             JOIN Seat s ON trs.idSeat = s.id
+             WHERE trs.id = @trsId AND trs.idTrainRide = @rideId`
+          );
+
+          if (checkResult.recordset.length === 0) {
+            const err = new Error('Ghế không tồn tại');
+            err.isBusinessError = true;
+            throw err;
+          }
+          if (checkResult.recordset[0].status !== 'AVAILABLE') {
+            const err = new Error('Ghế đã được người khác đặt trước!');
+            err.isBusinessError = true;
+            throw err;
+          }
+
+          // Simulate processing delay to make race condition visible
+          if (delay > 0) {
+            await new Promise(r => setTimeout(r, delay));
+          }
+
+          // Book the seat
+          await request.query(
+            `UPDATE TrainRideSeat SET status = 'BOOKED' WHERE id = @trsId`
+          );
+
+          const ticketId = 'TK_DEMO_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+          request.input('ticketId', ticketId);
+          request.input('customerId', customerId);
+          await request.query(
+            `INSERT INTO Ticket (id, idCustomer, status, createdAt, idTrainRideSeat)
+             VALUES (@ticketId, @customerId, 'paid', GETDATE(), @trsId)`
+          );
+
+          return { ticketId, seatClass: checkResult.recordset[0].SeatClass, seatNumber: checkResult.recordset[0].SeatNumber };
+        });
+
+        return {
+          label,
+          customerId,
+          success: true,
+          ticketId: result.ticketId,
+          seatInfo: `Ghế ${result.seatNumber} (${result.seatClass})`,
+          duration: Date.now() - startTime,
+          message: 'Đặt vé thành công!'
+        };
+      } catch (error) {
+        return {
+          label,
+          customerId,
+          success: false,
+          duration: Date.now() - startTime,
+          message: error.isBusinessError ? error.message : 'Lỗi: ' + error.message
+        };
+      }
+    };
+
+    // Launch both bookings at the same time (race condition)
+    const [resultA, resultB] = await Promise.all([
+      bookOneSeat(customerA, 'User A'),
+      bookOneSeat(customerB, 'User B'),
+    ]);
+
+    // Clean up: restore the seat to AVAILABLE and remove demo tickets
+    await db.executeQuery(
+      `UPDATE TrainRideSeat SET status = 'AVAILABLE' WHERE id = @trsId`,
+      { trsId }
+    );
+    await db.executeQuery(
+      `DELETE FROM Ticket WHERE idTrainRideSeat = @trsId AND id LIKE 'TK_DEMO_%'`,
+      { trsId }
+    );
+
+    res.json({
+      success: true,
+      results: [resultA, resultB],
+      explanation: resultA.success && resultB.success
+        ? '⚠️ CẢ HAI đều đặt được — Lỗi tương tranh! (không có khóa)'
+        : '✅ Chỉ MỘT người đặt được — Xử lý tương tranh thành công (UPDLOCK, ROWLOCK)'
+    });
+  } catch (error) {
+    console.error('❌ Demo concurrency error:', error);
+    res.json({ success: false, message: 'Lỗi demo: ' + error.message });
+  }
+});
+
+// POST /api/tickets/demo/concurrent-book-no-lock
+// Same as above but WITHOUT locking — to demonstrate the race condition problem
+router.post('/demo/concurrent-book-no-lock', async (req, res) => {
+  try {
+    const { IdTrainRide, trsId, customerA, customerB, delayMs } = req.body;
+    if (!IdTrainRide || !trsId || !customerA || !customerB) {
+      return res.json({ success: false, message: 'Thiếu thông tin' });
+    }
+    const delay = parseInt(delayMs, 10) || 500;
+
+    // Reset the seat to AVAILABLE
+    await db.executeQuery(
+      `UPDATE TrainRideSeat SET status = 'AVAILABLE' WHERE id = @trsId`,
+      { trsId }
+    );
+    await db.executeQuery(
+      `DELETE FROM Ticket WHERE idTrainRideSeat = @trsId AND id LIKE 'TK_DEMO_%'`,
+      { trsId }
+    );
+
+    const bookNoLock = async (customerId, label) => {
+      const startTime = Date.now();
+      try {
+        // Step 1: Check status WITHOUT any lock (NOLOCK = dirty read)
+        const checkResult = await db.executeQuery(
+          `SELECT trs.id, trs.status, s.SeatClass, s.SeatNumber
+           FROM TrainRideSeat trs WITH (NOLOCK)
+           JOIN Seat s ON trs.idSeat = s.id
+           WHERE trs.id = @trsId AND trs.idTrainRide = @rideId`,
+          { trsId, rideId: IdTrainRide }
+        );
+
+        if (checkResult.length === 0 || checkResult[0].status !== 'AVAILABLE') {
+          return {
+            label, customerId, success: false,
+            duration: Date.now() - startTime,
+            message: 'Ghế đã được người khác đặt trước!'
+          };
+        }
+
+        // Simulate processing delay — this is where the race condition happens
+        await new Promise(r => setTimeout(r, delay));
+
+        // Step 2: Update (both transactions think the seat is still AVAILABLE)
+        await db.executeQuery(
+          `UPDATE TrainRideSeat SET status = 'BOOKED' WHERE id = @trsId`,
+          { trsId }
+        );
+
+        const ticketId = 'TK_DEMO_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+        await db.executeQuery(
+          `INSERT INTO Ticket (id, idCustomer, status, createdAt, idTrainRideSeat)
+           VALUES (@ticketId, @customerId, 'paid', GETDATE(), @trsId)`,
+          { ticketId, customerId, trsId }
+        );
+
+        return {
+          label, customerId, success: true, ticketId,
+          seatInfo: `Ghế ${checkResult[0].SeatNumber} (${checkResult[0].SeatClass})`,
+          duration: Date.now() - startTime,
+          message: 'Đặt vé thành công!'
+        };
+      } catch (error) {
+        return {
+          label, customerId, success: false,
+          duration: Date.now() - startTime,
+          message: 'Lỗi: ' + error.message
+        };
+      }
+    };
+
+    const [resultA, resultB] = await Promise.all([
+      bookNoLock(customerA, 'User A'),
+      bookNoLock(customerB, 'User B'),
+    ]);
+
+    // Clean up
+    await db.executeQuery(
+      `UPDATE TrainRideSeat SET status = 'AVAILABLE' WHERE id = @trsId`,
+      { trsId }
+    );
+    await db.executeQuery(
+      `DELETE FROM Ticket WHERE idTrainRideSeat = @trsId AND id LIKE 'TK_DEMO_%'`,
+      { trsId }
+    );
+
+    res.json({
+      success: true,
+      results: [resultA, resultB],
+      explanation: resultA.success && resultB.success
+        ? '⚠️ CẢ HAI đều đặt được — Lỗi tương tranh! (không có khóa)'
+        : '✅ Chỉ MỘT người đặt được — Không xảy ra tương tranh lần này'
+    });
+  } catch (error) {
+    console.error('❌ Demo no-lock error:', error);
+    res.json({ success: false, message: 'Lỗi demo: ' + error.message });
   }
 });
 

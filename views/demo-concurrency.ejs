@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Xử Lý Tương Tranh - TicketBooking</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/concurrency-demo.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <a href="/" class="back-link">← Trang chủ</a>
+            <h1>⚡ Demo Xử Lý Tương Tranh (Concurrency)</h1>
+            <p>Mô phỏng 2 người dùng đặt cùng 1 ghế tại cùng 1 thời điểm</p>
+        </header>
+
+        <!-- Config Panel -->
+        <section class="config-panel" id="configPanel">
+            <h2>⚙️ Cấu hình Demo</h2>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label>Chuyến tàu</label>
+                    <select id="selectRide"></select>
+                </div>
+                <div class="config-item">
+                    <label>Ghế tranh chấp</label>
+                    <select id="selectSeat"><option value="">-- Chọn chuyến trước --</option></select>
+                </div>
+                <div class="config-item">
+                    <label>Khách hàng A</label>
+                    <select id="selectCustomerA"></select>
+                </div>
+                <div class="config-item">
+                    <label>Khách hàng B</label>
+                    <select id="selectCustomerB"></select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Explanation -->
+        <section class="explanation-panel">
+            <div class="explain-card no-lock">
+                <h3>❌ Không có khóa (NOLOCK)</h3>
+                <p>Cả 2 user đều đọc ghế = AVAILABLE → cả 2 đều UPDATE → <strong>bán trùng vé!</strong></p>
+                <div class="flow-diagram">
+                    <span class="step">User A: SELECT ✓</span>
+                    <span class="step">User B: SELECT ✓</span>
+                    <span class="step">User A: UPDATE ✓</span>
+                    <span class="step bad">User B: UPDATE ✓ (LỖI!)</span>
+                </div>
+            </div>
+            <div class="explain-card with-lock">
+                <h3>✅ Có khóa (UPDLOCK, ROWLOCK)</h3>
+                <p>User A khóa row khi đọc → User B phải <strong>chờ</strong> → đọc lại thấy BOOKED → từ chối</p>
+                <div class="flow-diagram">
+                    <span class="step">User A: SELECT + LOCK 🔒</span>
+                    <span class="step waiting">User B: WAITING... ⏳</span>
+                    <span class="step">User A: UPDATE + COMMIT</span>
+                    <span class="step good">User B: SELECT → BOOKED → TỪ CHỐI</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <section class="action-panel">
+            <button class="btn-demo btn-no-lock" id="btnNoLock" onclick="runDemo('no-lock')">
+                <span class="btn-icon">💥</span>
+                <span>Chạy KHÔNG CÓ khóa</span>
+                <small>Sẽ gây lỗi tương tranh</small>
+            </button>
+            <button class="btn-demo btn-with-lock" id="btnWithLock" onclick="runDemo('with-lock')">
+                <span class="btn-icon">🔒</span>
+                <span>Chạy CÓ khóa (UPDLOCK)</span>
+                <small>Xử lý tương tranh đúng</small>
+            </button>
+        </section>
+
+        <!-- Results -->
+        <section class="results-panel" id="resultsPanel" style="display:none;">
+            <h2 id="resultTitle">Kết quả</h2>
+            <div class="result-explanation" id="resultExplanation"></div>
+            <div class="users-result">
+                <div class="user-result" id="resultA">
+                    <div class="user-avatar a">A</div>
+                    <h3>User A</h3>
+                    <div class="result-status"></div>
+                    <div class="result-details"></div>
+                </div>
+                <div class="versus">VS</div>
+                <div class="user-result" id="resultB">
+                    <div class="user-avatar b">B</div>
+                    <h3>User B</h3>
+                    <div class="result-status"></div>
+                    <div class="result-details"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline -->
+        <section class="timeline-panel" id="timelinePanel" style="display:none;">
+            <h2>📊 Timeline xử lý</h2>
+            <div class="timeline" id="timeline"></div>
+        </section>
+
+        <!-- History -->
+        <section class="history-panel">
+            <h2>📝 Lịch sử Demo</h2>
+            <div class="history-list" id="historyList">
+                <p class="empty-history">Chưa có kết quả nào. Nhấn nút ở trên để chạy demo.</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="/js/concurrency-demo.js"></script>
+</body>
+</html>

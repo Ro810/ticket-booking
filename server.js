@@ -39,6 +39,11 @@ app.use('/api/stations', require('./routes/api/stations'));
 app.use('/api/employees', require('./routes/api/employees'));
 app.use('/api/branches', require('./routes/api/branches'));
 
+// Demo: concurrency
+app.get('/demo/concurrency', (req, res) => {
+  res.render('demo-concurrency');
+});
+
 // Debug endpoints
 app.get('/api/test-db', async (req, res) => {
   try {
